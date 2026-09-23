@@ -1,4 +1,4 @@
-package com.veterinaria.api.dtos;
+package com.veterinaria.api.dtos.clienteDto;
 
 
 import jakarta.validation.constraints.NotBlank;

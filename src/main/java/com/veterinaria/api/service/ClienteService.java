@@ -1,7 +1,7 @@
 package com.veterinaria.api.service;
 
-import com.veterinaria.api.dtos.ClienteRequestDto;
-import com.veterinaria.api.dtos.ClienteResponseDto;
+import com.veterinaria.api.dtos.clienteDto.ClienteRequestDto;
+import com.veterinaria.api.dtos.clienteDto.ClienteResponseDto;
 import com.veterinaria.api.entity.Cliente;
 import com.veterinaria.api.exception.BadRequestException;
 import com.veterinaria.api.exception.ResourceNotFoundException;

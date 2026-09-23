@@ -1,4 +1,4 @@
-package com.veterinaria.api.dtos;
+package com.veterinaria.api.dtos.clienteDto;
 
 //dto para mandarle al cliente (Acá sí va el ID, y podemos ocultar datos si quisiéramos)
 public record ClienteResponseDto(

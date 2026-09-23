@@ -1,7 +1,7 @@
 package com.veterinaria.api.controller;
 
-import com.veterinaria.api.dtos.ClienteRequestDto;
-import com.veterinaria.api.dtos.ClienteResponseDto;
+import com.veterinaria.api.dtos.clienteDto.ClienteRequestDto;
+import com.veterinaria.api.dtos.clienteDto.ClienteResponseDto;
 import com.veterinaria.api.service.ClienteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
