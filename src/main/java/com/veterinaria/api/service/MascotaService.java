@@ -13,13 +13,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
 public class MascotaService {
 
-    private ClienteRepository clienteRepository;
-    private MascotaRepository mascotaRepository;
+    private final ClienteRepository clienteRepository;
+    private final MascotaRepository mascotaRepository;
 
     //metodo para guardar mascota
     public MascotaResponseDto save(MascotaRequestDto mascotaRequestDto){
@@ -108,6 +110,15 @@ public class MascotaService {
 
         //eliminar
         mascotaRepository.deleteById(id);
+    }
+
+
+    //metodo para buscar mascota por su nombre
+    public List<MascotaResponseDto> findByName(String nombre){
+        List<Mascota> mascotas=mascotaRepository.findByNombreContainingIgnoreCase(nombre);
+        return mascotas.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
 

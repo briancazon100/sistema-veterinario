@@ -46,7 +46,7 @@ public class MascotaController {
 
     //endpoint para actualizar una mascota
     @PutMapping("/{id}")
-    public ResponseEntity<MascotaResponseDto> update(Long id, @Valid @RequestBody MascotaRequestDto mascotaRequestDto){
+    public ResponseEntity<MascotaResponseDto> update(@PathVariable Long id, @Valid @RequestBody MascotaRequestDto mascotaRequestDto){
         return  ResponseEntity.ok(mascotaService.update(id, mascotaRequestDto));
     }
 
@@ -55,6 +55,13 @@ public class MascotaController {
     public ResponseEntity<MascotaResponseDto> delete(@PathVariable Long id){
         mascotaService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    //endpoint para buscar mascota por nombre
+    @GetMapping("/nombre")
+    public ResponseEntity<List<MascotaResponseDto>> findByName(@RequestParam String nombre){
+        List<MascotaResponseDto> mascotas=mascotaService.findByName(nombre);
+        return ResponseEntity.ok(mascotas);
     }
 
 

@@ -11,4 +11,7 @@ public interface MascotaRepository extends JpaRepository<Mascota, Long> {
 
     //metodo para buscar las mascotas de un dueño(cliente)
     List<Mascota> findByClienteId(Long clienteId);
+
+    // Busca cualquier mascota cuyo nombre contenga el texto (estilo LIKE %nombre%) e ignora mayúsculas/minúsculas
+    List<Mascota> findByNombreContainingIgnoreCase(String nombre);
 }
