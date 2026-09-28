@@ -25,7 +25,7 @@ public class Mascota {
     @Column(nullable = false, length = 50)
     private String raza;
 
-    @Column(name = "fecha_nacimiento")
+    @Column(nullable=false, name = "fecha_nacimiento")
     private LocalDate fecha_nacimiento;
 
     // Relación Muchos a Uno con Cliente
