@@ -34,7 +34,7 @@ public class MascotaService {
                 .nombre(mascotaRequestDto.nombre())
                 .especie(mascotaRequestDto.especie())
                 .raza(mascotaRequestDto.raza())
-                .fecha_nacimiento(mascotaRequestDto.fecha_nacimiento())
+                .fecha_nacimiento(mascotaRequestDto.fechaNacimiento())
                 .cliente(cliente)
                 .build();
 
@@ -62,13 +62,13 @@ public class MascotaService {
     }
 
     //buscar todas las mascotas que tiene un cliente por cliente_id
-    public List<MascotaResponseDto> findByClienteId(Long cliente_id){
+    public List<MascotaResponseDto> findByClienteId(Long clienteId){
         //validar primero si existe ese cliente
-        if(!clienteRepository.existsById(cliente_id)){
-            throw new BadRequestException("No se encuentra registrado el cliente con id "+cliente_id);
+        if(!clienteRepository.existsById(clienteId)){
+            throw new BadRequestException("No se encuentra registrado el cliente con id "+clienteId);
         }
 
-        return mascotaRepository.findByClienteId(cliente_id).stream()
+        return mascotaRepository.findByClienteId(clienteId).stream()
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -90,7 +90,7 @@ public class MascotaService {
         mascota.setNombre(mascotaRequestDto.nombre());
         mascota.setEspecie(mascotaRequestDto.especie());
         mascota.setRaza(mascotaRequestDto.raza());
-        mascota.setFecha_nacimiento(mascotaRequestDto.fecha_nacimiento());
+        mascota.setFecha_nacimiento(mascotaRequestDto.fechaNacimiento());
 
         //guardar en la db
         Mascota actualizada= mascotaRepository.save(mascota);

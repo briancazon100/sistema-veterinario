@@ -18,7 +18,7 @@ public record MascotaRequestDto(
 
         @NotNull(message = "La fecha de nacimiento es obligatoria")
         @PastOrPresent(message = "No es posible un fecha futura")
-        LocalDate fecha_nacimiento,
+        LocalDate fechaNacimiento,
 
         @NotNull(message = "El ID del cliente (dueño) es obligatorio")
         Long clienteId
