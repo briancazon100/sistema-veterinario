@@ -65,7 +65,7 @@ public class MascotaService {
     public List<MascotaResponseDto> findByClienteId(Long clienteId){
         //validar primero si existe ese cliente
         if(!clienteRepository.existsById(clienteId)){
-            throw new BadRequestException("No se encuentra registrado el cliente con id "+clienteId);
+            throw new ResourceNotFoundException("No se encuentra registrado el cliente con id "+clienteId);
         }
 
         return mascotaRepository.findByClienteId(clienteId).stream()
