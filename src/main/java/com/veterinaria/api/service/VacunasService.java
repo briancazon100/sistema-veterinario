@@ -7,6 +7,7 @@ import com.veterinaria.api.entity.ConsultaMedica;
 import com.veterinaria.api.entity.Mascota;
 import com.veterinaria.api.entity.RegistroVacunas;
 import com.veterinaria.api.entity.Veterinario;
+import com.veterinaria.api.exception.BadRequestException;
 import com.veterinaria.api.exception.ResourceNotFoundException;
 import com.veterinaria.api.repository.MascotaRepository;
 import com.veterinaria.api.repository.VacunasRepository;
@@ -41,6 +42,11 @@ public class VacunasService {
 
         Veterinario veterinario = veterinarioRepository.findById(vacunasRequestDto.veterinarioId()).orElseThrow(()->
                 new ResourceNotFoundException("No se encontró al veterinario con id  "+vacunasRequestDto.veterinarioId()));
+
+        //validar que la proxima fecha de aplicacion no sea anterior a la fecha de la vacuna aplicada recientemente
+        if(vacunasRequestDto.fechaProximaDosis().isBefore(vacunasRequestDto.fechaAplicacion())){
+            throw new BadRequestException("La fecha de la próxima dosis debe ser posterior a la aplicada recientemente");
+        }
 
 
         //  pasar de dto a entidad para luego poder mandarle a la base de datos, y asignar fecha actual
