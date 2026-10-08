@@ -4,10 +4,13 @@ import com.veterinaria.api.entity.Cliente;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     boolean existsByTelefono(String telefono); //recibe un telefono y devuelve un cliente que tenga ese telefono
 
+    List<Cliente> findByNombreContainingIgnoreCase(String nombre);
 
 }

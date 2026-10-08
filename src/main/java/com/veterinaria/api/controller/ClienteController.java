@@ -60,5 +60,12 @@ public class ClienteController {
         clienteService.delete(id);
         return ResponseEntity.noContent().build(); // Devuelve HTTP 204 No Content
     }
+
+
+    //endpoint para buscar cliente por nombre(uso de like)
+    @GetMapping("/nombre")
+    public ResponseEntity<List<ClienteResponseDto>> findByName(@RequestParam String nombre){
+        return ResponseEntity.ok(clienteService.findByName(nombre));
+    }
     }
 
