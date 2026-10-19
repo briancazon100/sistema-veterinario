@@ -61,6 +61,7 @@ public class AuthService {
     }
 
     public JwtResponseDto login(LoginRequestDto dto) {
+
         // Autenticamos al usuario utilizando el AuthenticationManager configurado en Spring Security
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(dto.username(), dto.contraseña())

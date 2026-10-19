@@ -39,6 +39,7 @@ public class ClienteService {
                 .apellido(clienteRequestDto.apellido())
                 .telefono(clienteRequestDto.telefono())
                 .direccion(clienteRequestDto.direccion())
+                .estado(true)
                 .build();
 
         //3. guardar en Base De Datos
@@ -48,10 +49,10 @@ public class ClienteService {
         return mapToDTO(clienteGuardado);
     }
 
-    //metodo para listar todos los clientes
+    //metodo para listar todos los clientes activos
     public List<ClienteResponseDto> findAll() {
         // Obtenemos todos los clientes de la BD y los mapeamos a DTO usando Streams
-        return clienteRepository.findAll().stream()
+        return clienteRepository.findByEstadoTrue().stream()
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -61,7 +62,7 @@ public class ClienteService {
     public ClienteResponseDto findById(Long id) {
         // Buscamos por ID. Si no existe, lanzamos una excepción inmediatamente.
         //// Lanzamos ResourceNotFoundException
-        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con ID: " + id));
+        Cliente cliente = clienteRepository.findByIdAndEstadoTrue(id).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con ID: " + id));
 
         // Mapeamos a DTO y retornamos
        return mapToDTO(cliente);
@@ -75,7 +76,7 @@ public class ClienteService {
         Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("No se ha encontrado al cliente con id " + id));
 
         //2. verificar que si cambió de teléfono, que no se le permita cambiarlo por el de otro cliente
-        if (!cliente.getApellido().equals(clienteRequestDto.telefono()) && clienteRepository.existsByTelefono(clienteRequestDto.telefono())) {
+        if (!cliente.getTelefono().equals(clienteRequestDto.telefono()) && clienteRepository.existsByTelefono(clienteRequestDto.telefono())) {
 
             throw new BadRequestException("El teléfono " + clienteRequestDto.telefono() + " ya está registrado por otro cliente");
         }
@@ -100,12 +101,18 @@ public class ClienteService {
     @Transactional
     public void delete(Long id) {
         //verificar primeramente que exista ese cliente en la db
-        if (!clienteRepository.existsById(id)) {
-            throw new ResourceNotFoundException("No se encontró al cliente con id " + id);
-        }
+        Cliente cliente=clienteRepository.findByIdAndEstadoTrue(id).orElseThrow(()->new ResourceNotFoundException(
+        "No se encontró al cliente con id " + id
+        ));
 
-        //borrar de la db
-        clienteRepository.deleteById(id);
+
+
+        //borrado lógico
+        cliente.setEstado(false);
+
+        //guardamos en la db el cliente con su nuevo estado =false osea inactivo
+        clienteRepository.save(cliente);
+
     }
 
 
@@ -126,7 +133,8 @@ public class ClienteService {
                 cliente.getNombre(),
                 cliente.getApellido(),
                 cliente.getTelefono(),
-                cliente.getDireccion()
+                cliente.getDireccion(),
+                cliente.isEstado()
 
         );
     }

@@ -27,4 +27,7 @@ public class Cliente {
 
     @Column(nullable = false, length = 150)
     private String direccion;
+
+    @Column(nullable = false )
+    private boolean estado=true;
 }

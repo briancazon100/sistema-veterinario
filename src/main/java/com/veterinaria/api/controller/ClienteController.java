@@ -27,7 +27,7 @@ public class ClienteController {
     }
 
 
-    //endpoint para listar todos los clientes
+    //endpoint para listar todos los clientes activos
     @GetMapping
     public ResponseEntity<List<ClienteResponseDto>> findAll(){
         List<ClienteResponseDto> clientes=clienteService.findAll();
