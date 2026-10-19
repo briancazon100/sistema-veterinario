@@ -47,4 +47,12 @@ public class VeterinarioController {
     public ResponseEntity<VeterinarioResponseDto> update (@PathVariable Long id, @Valid @RequestBody VeterinarioRequestDto veterinarioRequestDto){
         return ResponseEntity.ok(veterinarioService.update(id, veterinarioRequestDto));
     }
+
+
+    //endpoint para eliminar un veterinario (borrado lógico)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<VeterinarioResponseDto> delete(@PathVariable Long id){
+        veterinarioService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

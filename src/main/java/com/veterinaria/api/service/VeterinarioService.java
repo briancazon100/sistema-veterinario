@@ -38,6 +38,7 @@ public class VeterinarioService {
                 .apellido(veterinarioRequestDto.apellido())
                 .matricula(veterinarioRequestDto.matricula())
                 .especialidad(veterinarioRequestDto.especialidad())
+                .estado(true)
                 .build();
 
         //3. guardar en la base de datos
@@ -53,7 +54,7 @@ public class VeterinarioService {
         //1. regla de negocio: validar si existe el veterinario
         // Buscamos por ID. Si no existe, lanzamos una excepción inmediatamente.
         //// Lanzamos ResourceNotFoundException
-        Veterinario veterinario= veterinarioRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException(
+        Veterinario veterinario= veterinarioRepository.findByIdAndEstadoTrue(id).orElseThrow(()-> new ResourceNotFoundException(
                 "No se encontró al veterinario con id :"+id));
 
         //devoler en dto el veterinario encontrado
@@ -62,17 +63,11 @@ public class VeterinarioService {
 
 
 
-    //metodo para listar todos los veterinarios
+    //metodo para listar todos los veterinarios activos
     public List<VeterinarioResponseDto> findAll(){
         // Obtenemos todos los veterinarios de la BD y los mapeamos a DTO usando Streams
-        return veterinarioRepository.findAll().stream()
-                .map(veterinario -> new VeterinarioResponseDto(
-                        veterinario.getId(),
-                        veterinario.getNombre(),
-                        veterinario.getApellido(),
-                        veterinario.getMatricula(),
-                        veterinario.getEspecialidad()
-                ))
+        return veterinarioRepository.findByEstadoTrue().stream()
+                .map(this::mapToDTO)
                 .toList();
     }
 
@@ -82,8 +77,14 @@ public class VeterinarioService {
     //metodo para actualizar un veterinario
     public VeterinarioResponseDto update(Long id, VeterinarioRequestDto veterinarioRequestDto){
         //1 regla de negocio: validar si existe ese veterinario
-        Veterinario veterinario=veterinarioRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException(
+        Veterinario veterinario=veterinarioRepository.findByIdAndEstadoTrue(id).orElseThrow(()-> new ResourceNotFoundException(
                 "No se encontró el veterinario con id "+id));
+
+        //validar que si cambió de casualidad de matrícula, que no sea igual a la de otro profesional
+        if(!veterinarioRequestDto.matricula().equals(veterinario.getMatricula())
+                && veterinarioRepository.existsByMatricula(veterinarioRequestDto.matricula())){
+            throw new BadRequestException("Ya existe un veterinario con la maátricula "+veterinarioRequestDto.matricula());
+        }
 
         //2. actualizar los datos : del veterinario que encontramos, le actualizamos (seteamos) los datos con lo que viene
         //del dto
@@ -101,6 +102,23 @@ public class VeterinarioService {
 
 
 
+
+    //metodo para eliminar un veterinario
+    public void delete(Long id ){
+        //verificamos que exista el vet
+        Veterinario veterinario= veterinarioRepository.findByIdAndEstadoTrue(id).orElseThrow(()-> new ResourceNotFoundException(
+                "No se encontró al veterinario con id "+id
+        ));
+
+        //borrado lógico
+        veterinario.setEstado(false);
+
+        //guardar el nuevo estado en la db
+        veterinarioRepository.save(veterinario);
+    }
+
+
+
     // Método helper para no repetir el mapeo a DTO
     private VeterinarioResponseDto mapToDTO(Veterinario veterinario) {
 
@@ -109,7 +127,8 @@ public class VeterinarioService {
                 veterinario.getNombre(),
                 veterinario.getApellido(),
                 veterinario.getMatricula(),
-                veterinario.getEspecialidad()
+                veterinario.getEspecialidad(),
+                veterinario.isEstado()
         );
     }
 

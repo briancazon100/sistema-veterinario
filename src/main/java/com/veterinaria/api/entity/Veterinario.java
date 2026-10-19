@@ -27,4 +27,7 @@ public class Veterinario {
 
     @Column(nullable = false, name="especialidad")
     private String especialidad;
+
+    @Column(nullable = false)
+    private boolean estado=true;
 }

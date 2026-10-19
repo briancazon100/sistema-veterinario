@@ -36,6 +36,7 @@ public class MascotaService {
                 .raza(mascotaRequestDto.raza())
                 .fecha_nacimiento(mascotaRequestDto.fechaNacimiento())
                 .cliente(cliente)
+                .estado(true)
                 .build();
 
         //3. guardar en la db
@@ -47,16 +48,16 @@ public class MascotaService {
 
 
 
-    //metodo para listar todas las mascotas
+    //metodo para listar todas las mascotas activas
     public List<MascotaResponseDto> findAll(){
-        return mascotaRepository.findAll().stream()
+        return mascotaRepository.findByEstadoTrue().stream()
                 .map(this::mapToDTO)
                 .toList();
     }
 
-    //metodo para buscar por id una mascota
+    //metodo para buscar por id una mascota activa
     public MascotaResponseDto findById(Long id){
-        Mascota mascota= mascotaRepository.findById(id).orElseThrow(()->
+        Mascota mascota= mascotaRepository.findByIdAndEstadoTrue(id).orElseThrow(()->
                 new ResourceNotFoundException("No se encontró la mascota con id "+id));
         return mapToDTO(mascota);
     }
@@ -104,12 +105,15 @@ public class MascotaService {
     //metodo para eliminar
     public void delete(Long id){
         //validar que exista la mascota
-        if(!mascotaRepository.existsById(id)){
-            throw  new ResourceNotFoundException("No se encontró una mascota con el id "+id);
-        }
+       Mascota mascota= mascotaRepository.findByIdAndEstadoTrue(id).orElseThrow(()->new ResourceNotFoundException(
+               "No se econtró a la mascota con id "+id
+       ));
 
-        //eliminar
-        mascotaRepository.deleteById(id);
+        //borrado logico
+        mascota.setEstado(false);
+
+        //guardar en la db el nuevo estado de la mascota, osea esta borrado pero permanece en la db
+        mascotaRepository.save(mascota);
     }
 
 
@@ -132,7 +136,8 @@ public class MascotaService {
                 mascota.getRaza(),
                 mascota.getFecha_nacimiento(),
                 mascota.getCliente().getId(),
-                nombreCliente
+                nombreCliente,
+                mascota.isEstado()
         );
     }
 

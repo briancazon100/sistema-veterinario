@@ -32,4 +32,7 @@ public class Mascota {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
+
+    @Column(nullable = false)
+    private boolean estado=true;
 }

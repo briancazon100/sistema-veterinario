@@ -5,6 +5,7 @@ public record VeterinarioResponseDto(
         String nombre,
         String apellido,
         String matricula,
-        String especialidad
+        String especialidad,
+        boolean estado
 ) {
 }

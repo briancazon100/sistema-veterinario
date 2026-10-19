@@ -9,6 +9,7 @@ public record MascotaResponseDto(
         String raza,
         LocalDate fechaNacimiento,
         Long clienteId,
-        String nombreClienteCompleto // Muestra ej: "Juan Pérez" en lugar de solo el ID
+        String nombreClienteCompleto, // Muestra ej: "Juan Pérez" en lugar de solo el ID
+        boolean estado
 ) {
 }

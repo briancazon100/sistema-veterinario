@@ -10,6 +10,7 @@ public record VeterinarioRequestDto(
         String apellido,
 
         @NotBlank(message = "La matrícula es obligatoria")
+
         String matricula,
 
         @NotBlank(message = "La especialidad es obligatoria")
