@@ -36,12 +36,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
 
-                        // 1. Endpoints públicos (para poder loguearse o registrarse)
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        // 1. Endpoints públicos (para poder loguearse)
+                        .requestMatchers("/api/v1/auth/login").permitAll()
 
                         // 2. Rutas del Veterinario / Admin
                         .requestMatchers("/api/v1/veterinarios/**", "/api/v1/estudios/**", "/api/v1/consultas-medicas/**",
-                                "/api/v1/vacunas/**", "/api/v1/desparasitaciones/**").hasRole("ADMIN")
+                                "/api/v1/vacunas/**", "/api/v1/desparasitaciones/**", "/api/v1/auth/register").hasRole("ADMIN")
 
                         // 3. Rutas  Accesibles por ADMIN y USER)
                         .requestMatchers("/api/v1/turnos/**", "/api/v1/clientes/**", "/api/v1/mascotas/**").hasAnyRole("ADMIN", "USER")
