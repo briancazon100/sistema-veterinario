@@ -15,6 +15,9 @@ import com.veterinaria.api.repository.MascotaRepository;
 import com.veterinaria.api.repository.TurnoRepository;
 import com.veterinaria.api.repository.VeterinarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,9 +96,54 @@ public class TurnoService {
     }
 
 
+    //metodo para expirar turnos pendientes
+    // Esta anotación ejecuta este método automáticamente todos los días a la 1:00 AM
+    //@Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 1 * * *")
+    @Transactional
+    public void expirarTurnosPendientes(){
+        LocalDateTime hoy=LocalDateTime.now();
+
+        //buscamos en la db todos los turnos anteriores a hoy que estan en estado pendiente
+        List<Turno> turnosVencidos=turnoRepository.findByEstadoAndFechaHoraBefore(EstadoTurno.PENDIENTE, hoy);
+
+        if(!turnosVencidos.isEmpty()){
+            for(Turno turno:turnosVencidos){
+                turno.setEstado(EstadoTurno.NO_ASISTIO);
+            }
+            //guardamos en la db los cambios
+            turnoRepository.saveAll(turnosVencidos);
+        }
 
 
-    //metodo para cambiar el estado de un turno(cancelado o atendido)
+    }
+
+
+
+
+    //listar turnos por paginacion
+    public Page<TurnoResponseDto> listarTurnosPaginacion(Pageable pageable){
+        Page<Turno> turnos=turnoRepository.findByOrderByFechaHoraDesc(pageable);
+
+        return turnos.map(this::mapToDTO);
+    }
+
+    //metodo para listar todos los turnos pendientes desde hoy
+    public List<TurnoResponseDto> listarTodosTurnosPendientes(){
+        // Calcular los límites del día de hoy
+        LocalDate hoy = LocalDate.now(); // Ej: 2026-10-02
+        LocalDateTime inicioDia = hoy.atStartOfDay(); // 2026-10-02 00:00:00
+
+
+        return turnoRepository.findByEstadoAndFechaHoraAfterOrderByFechaHoraAsc(EstadoTurno.PENDIENTE, inicioDia).stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+
+
+
+
+    //metodo para cambiar el estado de un turno(puede poner cancelado , atendido o no asistió)
     @Transactional //ponemos esto porque vamos a cambiar un registro en la db, no solo lo vamos a leer
     public TurnoResponseDto updateEstado(Long turnoId  ,  TurnoEstadoRequestDto turnoEstadoRequestDto){
         // 1. Buscar el turno

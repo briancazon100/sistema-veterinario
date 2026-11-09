@@ -43,6 +43,11 @@ public class VacunasService {
         Veterinario veterinario = veterinarioRepository.findById(vacunasRequestDto.veterinarioId()).orElseThrow(()->
                 new ResourceNotFoundException("No se encontró al veterinario con id  "+vacunasRequestDto.veterinarioId()));
 
+        //validar que  la fecha de aplicacion no sea posterior a esa fecha, aca no existen viajes en el futuro
+        if(vacunasRequestDto.fechaAplicacion().isAfter(LocalDate.now())){
+            throw new BadRequestException("La fecha de aplicación no debe ser posterior a hoy");
+        }
+
         //validar que la proxima fecha de aplicacion no sea anterior a la fecha de la vacuna aplicada recientemente
         if(vacunasRequestDto.fechaProximaDosis().isBefore(vacunasRequestDto.fechaAplicacion())){
             throw new BadRequestException("La fecha de la próxima dosis debe ser posterior a la aplicada recientemente");

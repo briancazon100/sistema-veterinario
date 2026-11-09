@@ -25,12 +25,17 @@ public class MascotaController {
         return new ResponseEntity<>(mascotaService.save(mascotaRequestDto), HttpStatus.CREATED);
     }
 
-    //endpoint para listar todas las mascotas
+    //endpoint para listar todas las mascotas activas
     @GetMapping
+    public ResponseEntity<List<MascotaResponseDto>> findAllActivas(){
+        return ResponseEntity.ok(mascotaService.findAllActivas());
+    }
+
+    //endpoint para listar todas las mascotas, activas e inactivas
+    @GetMapping("/findAll")
     public ResponseEntity<List<MascotaResponseDto>> findAll(){
         return ResponseEntity.ok(mascotaService.findAll());
     }
-
 
     //endpoint para buscar por id una mascota
     @GetMapping("/{id}")

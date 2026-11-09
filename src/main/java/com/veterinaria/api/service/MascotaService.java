@@ -49,8 +49,14 @@ public class MascotaService {
 
 
     //metodo para listar todas las mascotas activas
-    public List<MascotaResponseDto> findAll(){
+    public List<MascotaResponseDto> findAllActivas(){
         return mascotaRepository.findByEstadoTrue().stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+
+    public List<MascotaResponseDto> findAll(){
+        return mascotaRepository.findAll().stream()
                 .map(this::mapToDTO)
                 .toList();
     }

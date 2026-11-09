@@ -10,10 +10,10 @@ public record ConsultaMedicaRequestDto(
         @NotBlank(message = "El motivo es obligatorio")
         String motivo,
 
-        @NotNull(message = "El peso es obligatorio")
+
         Double peso,
 
-        @NotNull(message = "La temperatura es obligatoria")
+
         Double temperatura,
 
         Integer frecuenciaCardiaca,

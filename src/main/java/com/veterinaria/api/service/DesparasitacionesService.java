@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -34,6 +35,11 @@ public class DesparasitacionesService {
         //reglas de negocios: validar que la proxima dosis no sea antes que la dosis aplicada
         if(desparasitacionesRequestDto.fechaProximaDosis().isBefore(desparasitacionesRequestDto.fechaAplicacion())){
             throw  new BadRequestException("La próxima dósis debe ser posterior a la aplicada");
+        }
+
+        //validar que la fecha aplicada no sea posterior a hoy
+        if(desparasitacionesRequestDto.fechaAplicacion().isAfter(LocalDate.now())){
+            throw new BadRequestException("La fecha de aplicación no debe ser posterior a hoy");
         }
 
         //validar que la mascota exista

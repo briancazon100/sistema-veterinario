@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -92,6 +93,24 @@ public class ConsultaMedicaService {
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+
+    //metodo para listar todas las consultas registradas durante el mes actual
+    public List<ConsultaMedicaResponseDto> listarConsultasEsteMes(){
+        //obtenemos el mes actual
+        YearMonth mesActual= YearMonth.now();
+
+        //obtenemos el primer dia del mes
+        LocalDate inicio= mesActual.atDay(1);
+
+        //obtenemos el ultimo dia del mes
+        LocalDate fin= mesActual.atEndOfMonth();
+
+        //pasar a dto luego de haber buscado en ls db
+        return consultaMedicaRepository.findByFechaBetween(inicio, fin).stream()
+                .map(this::mapToDTO)
+                .toList();
     }
 
    public  ConsultaMedicaResponseDto mapToDTO(ConsultaMedica consulta) {

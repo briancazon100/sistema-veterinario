@@ -29,9 +29,15 @@ public class ClienteController {
 
     //endpoint para listar todos los clientes activos
     @GetMapping
-    public ResponseEntity<List<ClienteResponseDto>> findAll(){
-        List<ClienteResponseDto> clientes=clienteService.findAll();
+    public ResponseEntity<List<ClienteResponseDto>> findAllActivos(){
+        List<ClienteResponseDto> clientes=clienteService.findAllActivos();
         return ResponseEntity.ok(clientes); // Devuelve HTTP 200 con la lista en JSON
+    }
+
+    //endpoint para listar todos los clientes, activos e inactivos}
+    @GetMapping("/findAll")
+    public ResponseEntity<List<ClienteResponseDto>> findAll(){
+        return ResponseEntity.ok(clienteService.findAll());
     }
 
 
@@ -62,10 +68,26 @@ public class ClienteController {
     }
 
 
-    //endpoint para buscar cliente por nombre(uso de like)
-    @GetMapping("/nombre")
-    public ResponseEntity<List<ClienteResponseDto>> findByName(@RequestParam String nombre){
-        return ResponseEntity.ok(clienteService.findByName(nombre));
+
+
+    //endpoint para buscar clientes por nombre, apellido, tel, etc..
+    @GetMapping("/buscar")
+    public ResponseEntity<List<ClienteResponseDto>> buscarClientes(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String apellido,
+            @RequestParam(required = false) String telefono,
+            @RequestParam(required = false) String direccion) {
+
+        List<ClienteResponseDto> resultados = clienteService.buscarClientes(nombre, apellido, telefono, direccion);
+        return ResponseEntity.ok(resultados);
     }
+
+    //endpoint para dar de nuevo alta a un cliente que fue eliminado anteriormente(estado=false)
+    @PatchMapping("/{id}/activar")
+    public ResponseEntity<ClienteResponseDto> cambiarAActivo(@PathVariable Long id){
+        return ResponseEntity.ok(clienteService.cambiarAActivo(id));
+    }
+
+
     }
 

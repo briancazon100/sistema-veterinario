@@ -73,6 +73,11 @@ public class EstudioService {
             throw  new BadRequestException("El estado del estudio debe estar en pendiente");
         }
 
+        //validar que la fecha de realizacion del dto no sea posterior a hoy
+        if(resultadoEstudiosDto.fechaRealizacion().isAfter(LocalDate.now())){
+            throw new BadRequestException("La fecha de realización no debe ser posterior a hoy");
+        }
+
         // Si viene archivo, lo subimos a Cloudinary
         if (archivo != null && !archivo.isEmpty()) {
             String url = cloudinaryService.subirArchivo(archivo);
@@ -81,7 +86,7 @@ public class EstudioService {
 
 
         //actualizamos campos
-        estudioComplementario.setFechaRealizacion(LocalDate.now());
+        estudioComplementario.setFechaRealizacion(resultadoEstudiosDto.fechaRealizacion());
         estudioComplementario.setEstado(EstadoEstudio.REALIZADO);
         estudioComplementario.setResultadoInforme(resultadoEstudiosDto.resultadoInforme());
 

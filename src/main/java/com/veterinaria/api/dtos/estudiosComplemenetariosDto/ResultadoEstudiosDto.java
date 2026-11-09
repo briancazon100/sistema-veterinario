@@ -1,6 +1,9 @@
 package com.veterinaria.api.dtos.estudiosComplemenetariosDto;
 
+import java.time.LocalDate;
+
 public record ResultadoEstudiosDto(
-        String resultadoInforme
+        String resultadoInforme,
+        LocalDate fechaRealizacion
 ) {
 }

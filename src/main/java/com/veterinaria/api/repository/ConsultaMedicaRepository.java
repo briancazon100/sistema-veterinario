@@ -4,6 +4,7 @@ import com.veterinaria.api.entity.ConsultaMedica;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -13,4 +14,8 @@ public interface ConsultaMedicaRepository extends JpaRepository<ConsultaMedica, 
 
     // Obtener todas las consultas realizadas por un veterinario específico
     List<ConsultaMedica> findByVeterinarioIdOrderByFechaDesc(Long veterinarioId);
+
+
+    //obtener todas las consultas del mes actual
+    List<ConsultaMedica> findByFechaBetween(LocalDate inicio, LocalDate fin);
 }

@@ -8,7 +8,9 @@ import com.veterinaria.api.entity.Mascota;
 import com.veterinaria.api.exception.BadRequestException;
 import com.veterinaria.api.exception.ResourceNotFoundException;
 import com.veterinaria.api.repository.ClienteRepository;
+import com.veterinaria.api.repository.specification.ClienteSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,9 +52,31 @@ public class ClienteService {
     }
 
     //metodo para listar todos los clientes activos
-    public List<ClienteResponseDto> findAll() {
+    public List<ClienteResponseDto> findAllActivos() {
         // Obtenemos todos los clientes de la BD y los mapeamos a DTO usando Streams
         return clienteRepository.findByEstadoTrue().stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+
+
+    //metodo para listar todos los clientes, activos e inactivos
+    public List<ClienteResponseDto>findAll(){
+        // Obtenemos todos los clientes de la BD y los mapeamos a DTO usando Streams
+        return clienteRepository.findAll().stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+
+    public List<ClienteResponseDto> buscarClientes(String nombre, String apellido, String telefono, String direccion) {
+        // Creamos la especificación con los datos que llegaron
+        Specification<Cliente> spec = ClienteSpecification.filtrarClientes(nombre, apellido, telefono, direccion);
+
+        // Ejecutamos la búsqueda dinámica
+        List<Cliente> clientes = clienteRepository.findAll(spec);
+
+        // Mapeamos a DTO y devolvemos
+        return clientes.stream()
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -118,12 +142,23 @@ public class ClienteService {
 
 
 
-    //metodo para buscar un cliente por su nombre
-    public List<ClienteResponseDto> findByName(String nombre){
-        List<Cliente> clientes= clienteRepository.findByNombreContainingIgnoreCase(nombre);
-        return clientes.stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+
+    //metodo para dar de nuevo alta a un cliente que fue elminado
+    @Transactional
+    public ClienteResponseDto cambiarAActivo(Long id){
+        ///buscamos al cliente elminado por su id
+        Cliente cliente= clienteRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException(
+                "No se encontró al cliente con id "+id
+        ));
+
+        //le cambiamos el estado a ACTIVO
+        cliente.setEstado(true);
+
+        //ahora guardamos en la db
+        Cliente clienteActualizado=clienteRepository.save(cliente);
+
+        //mapear a dto y retornar
+        return mapToDTO(clienteActualizado);
     }
     // Método helper para no repetir el mapeo a DTO
     private ClienteResponseDto mapToDTO(Cliente cliente) {

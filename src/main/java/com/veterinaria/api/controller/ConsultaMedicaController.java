@@ -37,4 +37,11 @@ public class ConsultaMedicaController {
     public ResponseEntity<List<ConsultaMedicaResponseDto>> listarHistorialPorMascotaId (@PathVariable Long mascota_id){
         return  ResponseEntity.ok(consultaMedicaService.findByMascotaId(mascota_id));
     }
+
+
+    //endpoint para listar todas las consultas de este mes
+    @GetMapping("/mesActual")
+    public ResponseEntity<List<ConsultaMedicaResponseDto>> listarConsultasEsteMes(){
+        return ResponseEntity.ok(consultaMedicaService.listarConsultasEsteMes());
+    }
 }

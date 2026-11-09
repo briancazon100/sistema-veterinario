@@ -3,6 +3,9 @@ import com.veterinaria.api.dtos.UserDto.JwtResponseDto;
 import com.veterinaria.api.dtos.UserDto.LoginRequestDto;
 import com.veterinaria.api.dtos.UserDto.RegistroRequestDto;
 
+import com.veterinaria.api.dtos.UserDto.UsuarioInfoResponseDto;
+import com.veterinaria.api.dtos.clienteDto.ClienteResponseDto;
+import com.veterinaria.api.entity.Cliente;
 import com.veterinaria.api.entity.Rol;
 import com.veterinaria.api.entity.Usuario;
 import com.veterinaria.api.exception.BadRequestException;
@@ -18,9 +21,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AuthService {
 
 
@@ -38,6 +43,7 @@ public class AuthService {
 
     private final JwtTokenProvider jwtTokenProvider;
 
+    @Transactional
     public String registrar(RegistroRequestDto dto) {
 
         //validar si el username ya esta en uso
@@ -77,4 +83,26 @@ public class AuthService {
 
         return new JwtResponseDto(jwt, "Bearer", usuario.getUsername(), usuario.getRol().getNombre());
     }
+
+
+
+    //metodo para buscar un usuario por su usernmae
+    public UsuarioInfoResponseDto verInfo(String username){
+        Usuario usuario= usuarioRepository.findByUsername(username).orElseThrow(()->
+                new ResourceNotFoundException("No se encontró al usuario "+username));
+
+        return mapToDTO(usuario);
+    }
+
+
+
+    // Método helper para no repetir el mapeo a DTO
+    private UsuarioInfoResponseDto mapToDTO(Usuario usuario) {
+
+        return new UsuarioInfoResponseDto(
+                usuario.getUsername(),
+                usuario.getRol()
+        );
+    }
+
 }
