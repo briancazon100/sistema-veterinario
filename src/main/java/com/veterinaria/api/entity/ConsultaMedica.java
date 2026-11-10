@@ -25,13 +25,13 @@ public class ConsultaMedica {
     @Column(nullable = false, name="motivo")
     private String motivo;
 
-    @Column(nullable = false, name="peso_kg")
+    @Column( name="peso_kg")
     private Double  peso;
 
-    @Column(nullable = false, name="temperatura")
+    @Column( name="temperatura")
     private Double temperatura;
 
-    @Column(nullable = false, name="frecuencia_cardiaca")
+    @Column(name="frecuencia_cardiaca")
     private Integer frecuencia_cardiaca;
 
     @Column(columnDefinition = "TEXT")

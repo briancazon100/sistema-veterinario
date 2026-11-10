@@ -42,15 +42,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 logger.error("No se pudo extraer el username del token JWT: " + e.getMessage());
             }
         }
-        // Dentro de tu JwtAuthFilter.java, ponelo aquí:
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // ... tu lógica de validación de token ...
 
-            // AGREGA ESTAS LÍNEAS PARA DEPURAR:
-            System.out.println("=== DEPURANDO PETICIÓN EN POSTMAN ===");
-            System.out.println("Token recibido para usuario: " + username);
-
-        }
 
         // 2. Si encontramos un username y el usuario aún no está autenticado en este hilo
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

@@ -49,6 +49,8 @@ public class TurnoService {
         Veterinario veterinario=veterinarioRepository.findById(turnoRequestDto.veterinarioId()).orElseThrow(()->
                 new ResourceNotFoundException("El veterinario con id "+turnoRequestDto.veterinarioId()+" no existe"));
 
+        System.out.println("fecha hora recibida: "+turnoRequestDto.fechaHora());
+        System.out.println("fecha hora ahora: "+LocalDateTime.now());
         //validar que no saque un turno que sea anterior  ya sea al dia o a la hora exacta corriente
         if(turnoRequestDto.fechaHora().isBefore(LocalDateTime.now())){
             throw  new BadRequestException("El turno debe ser posterior al dia u hora corriente");
