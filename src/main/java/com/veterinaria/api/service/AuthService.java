@@ -98,15 +98,22 @@ public class AuthService {
 
 
 
-
+//metodo para listar todos los usuarios activos
+public List<UsuarioInfoResponseDto> listarActivos(){
+    return usuarioRepository.findByEstadoTrue().stream()
+            .map(this::mapToDTO)
+            .toList();
+}
 
 
     // Método helper para no repetir el mapeo a DTO
     private UsuarioInfoResponseDto mapToDTO(Usuario usuario) {
 
         return new UsuarioInfoResponseDto(
+                usuario.getId(),
                 usuario.getUsername(),
-                usuario.getRol()
+                usuario.getRol(),
+                usuario.isEstado()
         );
     }
 

@@ -12,6 +12,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -43,6 +45,12 @@ public class AuthController {
     }
 
 
+
+    //endpoint para listar todos los usuaarios activos
+    @GetMapping("/listarActivos")
+    public ResponseEntity<List<UsuarioInfoResponseDto>> listarActivos(){
+        return ResponseEntity.ok(authService.listarActivos());
+    }
 
 
 }
