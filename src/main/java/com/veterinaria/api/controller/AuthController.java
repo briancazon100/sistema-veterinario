@@ -53,4 +53,12 @@ public class AuthController {
     }
 
 
+    //endpoint para desactivar un usuario
+    @DeleteMapping("/{id}/desactivar")
+    public ResponseEntity<Void> desactivar(@PathVariable Long id){
+        authService.desactivar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+
 }

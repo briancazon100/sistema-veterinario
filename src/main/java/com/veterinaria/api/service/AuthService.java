@@ -107,6 +107,22 @@ public List<UsuarioInfoResponseDto> listarActivos(){
 }
 
 
+//metodo para desactivar un usuario
+    @Transactional
+    public void desactivar(Long id){
+        //encontrar al usuario al cual vamos a eliminar
+        Usuario usuario= usuarioRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(
+                "No se encontró al usuario con id "+id
+        ));
+
+        //cambiamos el estado a false(desactivado)
+        usuario.setEstado(false);
+
+        //guardamos los cambios en la db
+        usuarioRepository.save(usuario);
+    }
+
+
     // Método helper para no repetir el mapeo a DTO
     private UsuarioInfoResponseDto mapToDTO(Usuario usuario) {
 
