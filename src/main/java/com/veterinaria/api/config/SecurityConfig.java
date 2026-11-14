@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
 
-                        // 1. Endpoints públicos (para poder loguearse)
+                        // 1. Endpoints públicos (para poder loguearse)////
                         .requestMatchers("/api/v1/auth/login").permitAll()
 
                         // 2. Rutas del Veterinario / Admin
