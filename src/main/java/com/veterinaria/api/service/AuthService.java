@@ -63,6 +63,7 @@ public class AuthService {
         // ¡Encriptamos la contraseña antes de guardarla!
         usuario.setPassword(passwordEncoder.encode(dto.contraseña()));
         usuario.setRol(rol);
+        usuario.setEstado(true);
 
         usuarioRepository.save(usuario);
         return "Usuario registrado con éxito";
