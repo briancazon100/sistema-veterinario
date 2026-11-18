@@ -9,16 +9,18 @@ import java.util.Optional;
 
 @Repository
 public interface MascotaRepository extends JpaRepository<Mascota, Long> {
-
+    boolean existsByIdAndVeterinariaId(Long id, Long veterinariaId);
     //metodo para buscar las mascotas de un dueño(cliente)
-    List<Mascota> findByClienteId(Long clienteId);
+    List<Mascota> findByClienteIdAndVeterinariaId(Long clienteId, Long veterinariaId);
 
     // Busca cualquier mascota cuyo nombre contenga el texto (estilo LIKE %nombre%) e ignora mayúsculas/minúsculas
     List<Mascota> findByNombreContainingIgnoreCase(String nombre);
 
     //listar todas las mascotas activas
-    List<Mascota> findByEstadoTrue();
+    List<Mascota> findByEstadoTrueAndVeterinariaId(Long veterinariaId);
 
     //buscar mascota por id y que este activo
-    Optional<Mascota> findByIdAndEstadoTrue(Long id);
+    Optional<Mascota> findByIdAndEstadoTrueAndVeterinariaId(Long id, Long veterinariaId);
+
+    List<Mascota> findByVeterinariaId(Long veterinariaId);
 }

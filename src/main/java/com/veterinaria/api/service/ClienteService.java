@@ -5,10 +5,13 @@ import com.veterinaria.api.dtos.clienteDto.ClienteResponseDto;
 import com.veterinaria.api.dtos.mascotaDto.MascotaResponseDto;
 import com.veterinaria.api.entity.Cliente;
 import com.veterinaria.api.entity.Mascota;
+import com.veterinaria.api.entity.Veterinaria;
 import com.veterinaria.api.exception.BadRequestException;
 import com.veterinaria.api.exception.ResourceNotFoundException;
 import com.veterinaria.api.repository.ClienteRepository;
+import com.veterinaria.api.repository.VeterinariaRepository;
 import com.veterinaria.api.repository.specification.ClienteSpecification;
+import com.veterinaria.api.security.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -24,13 +27,19 @@ public class ClienteService {
 
     private final ClienteRepository clienteRepository;
 
+    private final VeterinariaRepository veterinariaRepository;
 
     //metodo para guardar cliente
     @Transactional
     public ClienteResponseDto save(ClienteRequestDto clienteRequestDto) {
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
+        Veterinaria veterinaria= veterinariaRepository.findById(veterinariaId).orElseThrow(()-> new ResourceNotFoundException(
+                "No se encontró a la veterinaria con id "+veterinariaId
+        ));
+
 
         //1 regla de negocio: verificar si el telefono ya existe
-        if (clienteRepository.existsByTelefono(clienteRequestDto.telefono())) {
+        if (clienteRepository.existsByTelefonoAndVeterinariaId(clienteRequestDto.telefono(), veterinariaId)) {
             // Lanzamos BadRequestException
             throw new BadRequestException("El teléfono '" + clienteRequestDto.telefono() + "' ya está registrado");
         }
@@ -42,6 +51,7 @@ public class ClienteService {
                 .telefono(clienteRequestDto.telefono())
                 .direccion(clienteRequestDto.direccion())
                 .estado(true)
+                .veterinaria(veterinaria)
                 .build();
 
         //3. guardar en Base De Datos
@@ -53,8 +63,9 @@ public class ClienteService {
 
     //metodo para listar todos los clientes activos
     public List<ClienteResponseDto> findAllActivos() {
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         // Obtenemos todos los clientes de la BD y los mapeamos a DTO usando Streams
-        return clienteRepository.findByEstadoTrue().stream()
+        return clienteRepository.findByEstadoTrueAndVeterinariaId(veterinariaId).stream()
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -62,15 +73,17 @@ public class ClienteService {
 
     //metodo para listar todos los clientes, activos e inactivos
     public List<ClienteResponseDto>findAll(){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         // Obtenemos todos los clientes de la BD y los mapeamos a DTO usando Streams
-        return clienteRepository.findAll().stream()
+        return clienteRepository.findByVeterinariaId(veterinariaId).stream()
                 .map(this::mapToDTO)
                 .toList();
     }
 
     public List<ClienteResponseDto> buscarClientes(String nombre, String apellido, String telefono, String direccion) {
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         // Creamos la especificación con los datos que llegaron
-        Specification<Cliente> spec = ClienteSpecification.filtrarClientes(nombre, apellido, telefono, direccion);
+        Specification<Cliente> spec = ClienteSpecification.filtrarClientes(nombre, apellido, telefono, direccion, veterinariaId);
 
         // Ejecutamos la búsqueda dinámica
         List<Cliente> clientes = clienteRepository.findAll(spec);
@@ -84,9 +97,10 @@ public class ClienteService {
 
     //metodo para buscar un cliente en particular
     public ClienteResponseDto findById(Long id) {
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         // Buscamos por ID. Si no existe, lanzamos una excepción inmediatamente.
         //// Lanzamos ResourceNotFoundException
-        Cliente cliente = clienteRepository.findByIdAndEstadoTrue(id).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con ID: " + id));
+        Cliente cliente = clienteRepository.findByIdAndEstadoTrueAndVeterinariaId(id, veterinariaId).orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con ID: " + id));
 
         // Mapeamos a DTO y retornamos
        return mapToDTO(cliente);
@@ -96,11 +110,12 @@ public class ClienteService {
     //metodo para actualizar un cliente
     @Transactional
     public ClienteResponseDto update(Long id, ClienteRequestDto clienteRequestDto) {
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         //1. validar que exista ese cliente
-        Cliente cliente = clienteRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("No se ha encontrado al cliente con id " + id));
+        Cliente cliente = clienteRepository.findByIdAndEstadoTrueAndVeterinariaId(id, veterinariaId).orElseThrow(() -> new ResourceNotFoundException("No se ha encontrado al cliente con id " + id));
 
         //2. verificar que si cambió de teléfono, que no se le permita cambiarlo por el de otro cliente
-        if (!cliente.getTelefono().equals(clienteRequestDto.telefono()) && clienteRepository.existsByTelefono(clienteRequestDto.telefono())) {
+        if (!cliente.getTelefono().equals(clienteRequestDto.telefono()) && clienteRepository.existsByTelefonoAndVeterinariaId(clienteRequestDto.telefono(), veterinariaId)) {
 
             throw new BadRequestException("El teléfono " + clienteRequestDto.telefono() + " ya está registrado por otro cliente");
         }
@@ -124,8 +139,9 @@ public class ClienteService {
     //metodo para eliminar cliente
     @Transactional
     public void delete(Long id) {
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         //verificar primeramente que exista ese cliente en la db
-        Cliente cliente=clienteRepository.findByIdAndEstadoTrue(id).orElseThrow(()->new ResourceNotFoundException(
+        Cliente cliente=clienteRepository.findByIdAndEstadoTrueAndVeterinariaId(id, veterinariaId).orElseThrow(()->new ResourceNotFoundException(
         "No se encontró al cliente con id " + id
         ));
 
@@ -146,8 +162,9 @@ public class ClienteService {
     //metodo para dar de nuevo alta a un cliente que fue elminado
     @Transactional
     public ClienteResponseDto cambiarAActivo(Long id){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         ///buscamos al cliente elminado por su id
-        Cliente cliente= clienteRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException(
+        Cliente cliente= clienteRepository.findByIdAndVeterinariaId(id, veterinariaId).orElseThrow(()-> new ResourceNotFoundException(
                 "No se encontró al cliente con id "+id
         ));
 

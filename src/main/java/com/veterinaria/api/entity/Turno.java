@@ -36,5 +36,9 @@ public class Turno {
     @JoinColumn(name = "veterinario_id")
     private Veterinario veterinario;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "veterinaria_id", nullable = false)
+    private Veterinaria veterinaria;
+
 
 }

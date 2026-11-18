@@ -9,6 +9,9 @@ public record RegistroRequestDto(
         String contraseña,
 
         @NotNull(message = "El rol es obligatorio")
-        String rolNombre //ej: ROLE_USER  O  ROLE_ADMIN
+        String rolNombre ,//ej: ROLE_USER  O  ROLE_ADMIN
+
+        @NotNull
+        Long veterinariaId
 ) {
 }

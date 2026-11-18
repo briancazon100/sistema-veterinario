@@ -4,16 +4,15 @@ import com.veterinaria.api.dtos.desparasitaciones.DesparasitacionesResponseDto;
 import com.veterinaria.api.dtos.turnoDto.TurnoEstadoRequestDto;
 import com.veterinaria.api.dtos.turnoDto.TurnoRequestDto;
 import com.veterinaria.api.dtos.turnoDto.TurnoResponseDto;
-import com.veterinaria.api.entity.Desparasitaciones;
-import com.veterinaria.api.entity.Mascota;
-import com.veterinaria.api.entity.Turno;
-import com.veterinaria.api.entity.Veterinario;
+import com.veterinaria.api.entity.*;
 import com.veterinaria.api.entity.enums.EstadoTurno;
 import com.veterinaria.api.exception.BadRequestException;
 import com.veterinaria.api.exception.ResourceNotFoundException;
 import com.veterinaria.api.repository.MascotaRepository;
 import com.veterinaria.api.repository.TurnoRepository;
+import com.veterinaria.api.repository.VeterinariaRepository;
 import com.veterinaria.api.repository.VeterinarioRepository;
+import com.veterinaria.api.security.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,19 +37,27 @@ public class TurnoService {
 
     private final VeterinarioRepository veterinarioRepository;
 
+    private final VeterinariaRepository veterinariaRepository;
+
     //metodo para crear un nuevo turno
     @Transactional
     public TurnoResponseDto save (TurnoRequestDto turnoRequestDto){
-        //validar que la mascota y el veterinario existan
-        Mascota mascota= mascotaRepository.findById(turnoRequestDto.mascotaId()).orElseThrow(()-> new ResourceNotFoundException(
-                "La mascota con id "+turnoRequestDto.mascotaId()+" no existe"
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
+        Veterinaria veterinaria= veterinariaRepository.findById(veterinariaId).orElseThrow(()-> new ResourceNotFoundException(
+                "No se encontró a la veterinaria con id "+veterinariaId
         ));
 
-        Veterinario veterinario=veterinarioRepository.findById(turnoRequestDto.veterinarioId()).orElseThrow(()->
+
+        //validar que la mascota y el veterinario existan
+        Mascota mascota= mascotaRepository.findByIdAndEstadoTrueAndVeterinariaId(turnoRequestDto.mascotaId(), veterinariaId)
+                .orElseThrow(()-> new ResourceNotFoundException("La mascota con id "+turnoRequestDto.mascotaId()+" no existe"
+        ));
+
+        Veterinario veterinario=veterinarioRepository.findByIdAndEstadoTrueAndVeterinariaId(turnoRequestDto.veterinarioId(),
+                veterinariaId).orElseThrow(()->
                 new ResourceNotFoundException("El veterinario con id "+turnoRequestDto.veterinarioId()+" no existe"));
 
-        System.out.println("fecha hora recibida: "+turnoRequestDto.fechaHora());
-        System.out.println("fecha hora ahora: "+LocalDateTime.now());
+
         //validar que no saque un turno que sea anterior  ya sea al dia o a la hora exacta corriente
         
         if(turnoRequestDto.fechaHora().isBefore(LocalDateTime.now())){
@@ -65,6 +72,7 @@ public class TurnoService {
                 .estado(EstadoTurno.PENDIENTE)
                 .mascota(mascota)
                 .veterinario(veterinario)
+                .veterinaria(veterinaria)
                 .build();
 
         //pasar a la db
@@ -78,8 +86,9 @@ public class TurnoService {
 
     //metodo para consultar los turnos pendientes del dia corriente de un veterinario
     public List<TurnoResponseDto> consultarTurnosPendientesHoy(Long veterinarioId){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         //validar si existe el veterinario
-        if (!veterinarioRepository.existsById(veterinarioId)){
+        if (!veterinarioRepository.existsByIdAndVeterinariaId(veterinarioId, veterinariaId)){
             throw new ResourceNotFoundException(("No existe el veterinario con id "+veterinarioId));
         }
 
@@ -89,7 +98,7 @@ public class TurnoService {
         LocalDateTime finDia = hoy.atTime(LocalTime.MAX); // 2026-10-02 23:59:59.999999999
 
         //consultar en la base de datos
-        List<Turno> turnosHoy=turnoRepository.findByVeterinarioIdAndEstadoAndFechaHoraBetweenOrderByFechaHoraAsc(veterinarioId,EstadoTurno.PENDIENTE
+        List<Turno> turnosHoy=turnoRepository.findByVeterinarioIdAndEstadoAndVeterinariaIdAndFechaHoraBetweenOrderByFechaHoraAsc(veterinarioId,EstadoTurno.PENDIENTE, veterinariaId
         ,inicioDia,finDia);
 
         // Convertir a DTO y devolver
@@ -105,10 +114,12 @@ public class TurnoService {
     @Scheduled(cron = "0 0 1 * * *")
     @Transactional
     public void expirarTurnosPendientes(){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         LocalDateTime hoy=LocalDateTime.now();
 
         //buscamos en la db todos los turnos anteriores a hoy que estan en estado pendiente
-        List<Turno> turnosVencidos=turnoRepository.findByEstadoAndFechaHoraBefore(EstadoTurno.PENDIENTE, hoy);
+        List<Turno> turnosVencidos=turnoRepository.findByEstadoAndFechaHoraBeforeAndVeterinariaId(EstadoTurno.PENDIENTE, hoy,
+                veterinariaId);
 
         if(!turnosVencidos.isEmpty()){
             for(Turno turno:turnosVencidos){
@@ -126,19 +137,21 @@ public class TurnoService {
 
     //listar turnos por paginacion
     public Page<TurnoResponseDto> listarTurnosPaginacion(Pageable pageable){
-        Page<Turno> turnos=turnoRepository.findByOrderByFechaHoraDesc(pageable);
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
+        Page<Turno> turnos=turnoRepository.findByVeterinariaIdOrderByFechaHoraDesc( veterinariaId,pageable);
 
         return turnos.map(this::mapToDTO);
     }
 
     //metodo para listar todos los turnos pendientes desde hoy
     public List<TurnoResponseDto> listarTodosTurnosPendientes(){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         // Calcular los límites del día de hoy
         LocalDate hoy = LocalDate.now(); // Ej: 2026-10-02
         LocalDateTime inicioDia = hoy.atStartOfDay(); // 2026-10-02 00:00:00
 
 
-        return turnoRepository.findByEstadoAndFechaHoraAfterOrderByFechaHoraAsc(EstadoTurno.PENDIENTE, inicioDia).stream()
+        return turnoRepository.findByEstadoAndVeterinariaIdAndFechaHoraAfterOrderByFechaHoraAsc(EstadoTurno.PENDIENTE, veterinariaId, inicioDia).stream()
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -149,8 +162,9 @@ public class TurnoService {
     //metodo para cambiar el estado de un turno(puede poner cancelado , atendido o no asistió)
     @Transactional //ponemos esto porque vamos a cambiar un registro en la db, no solo lo vamos a leer
     public TurnoResponseDto updateEstado(Long turnoId  ,  TurnoEstadoRequestDto turnoEstadoRequestDto){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         // 1. Buscar el turno
-        Turno turno= turnoRepository.findById(turnoId).orElseThrow(()->new ResourceNotFoundException(
+        Turno turno= turnoRepository.findByIdAndVeterinariaId(turnoId, veterinariaId).orElseThrow(()->new ResourceNotFoundException(
                 "No se encontró el turno con id "+turnoId
         ));
 

@@ -42,4 +42,8 @@ public class EstudioComplementario {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "consulta_id", nullable = false)
     private ConsultaMedica consultaMedica;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "veterinaria_id", nullable = false)
+    private Veterinaria veterinaria;
 }

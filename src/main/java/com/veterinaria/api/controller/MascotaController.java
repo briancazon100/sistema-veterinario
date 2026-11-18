@@ -62,12 +62,6 @@ public class MascotaController {
         return ResponseEntity.noContent().build();
     }
 
-    //endpoint para buscar mascota por nombre
-    @GetMapping("/nombre")
-    public ResponseEntity<List<MascotaResponseDto>> findByName(@RequestParam String nombre){
-        List<MascotaResponseDto> mascotas=mascotaService.findByName(nombre);
-        return ResponseEntity.ok(mascotas);
-    }
 
 
 

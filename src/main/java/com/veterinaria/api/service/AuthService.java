@@ -8,11 +8,14 @@ import com.veterinaria.api.dtos.clienteDto.ClienteResponseDto;
 import com.veterinaria.api.entity.Cliente;
 import com.veterinaria.api.entity.Rol;
 import com.veterinaria.api.entity.Usuario;
+import com.veterinaria.api.entity.Veterinaria;
 import com.veterinaria.api.exception.BadRequestException;
 import com.veterinaria.api.exception.ResourceNotFoundException;
 import com.veterinaria.api.repository.RolRepository;
 import com.veterinaria.api.repository.UsuarioRepository;
+import com.veterinaria.api.repository.VeterinariaRepository;
 import com.veterinaria.api.security.JwtTokenProvider;
+import com.veterinaria.api.security.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -45,6 +48,9 @@ public class AuthService {
 
     private final JwtTokenProvider jwtTokenProvider;
 
+
+    private final VeterinariaRepository veterinariaRepository;
+
     @Transactional
     public String registrar(RegistroRequestDto dto) {
 
@@ -58,12 +64,19 @@ public class AuthService {
                 "Rol no encontrado"
         ));
 
+        // 3. OBTENER EL TENANT ACTUAL (La veterinaria del admin que está haciendo la petición)
+        Long veterinariaId = TenantContext.getCurrentTenant();
+        Veterinaria veterinaria= veterinariaRepository.findById(veterinariaId).orElseThrow(()->new ResourceNotFoundException(
+                "No se encontró a la veterinaria con id "+veterinariaId
+        ));
+
         Usuario usuario = new Usuario();
         usuario.setUsername(dto.username());
         // ¡Encriptamos la contraseña antes de guardarla!
         usuario.setPassword(passwordEncoder.encode(dto.contraseña()));
         usuario.setRol(rol);
         usuario.setEstado(true);
+        usuario.setVeterinaria(veterinaria);
 
         usuarioRepository.save(usuario);
         return "Usuario registrado con éxito";
@@ -101,7 +114,8 @@ public class AuthService {
 
 //metodo para listar todos los usuarios activos
 public List<UsuarioInfoResponseDto> listarActivos(){
-    return usuarioRepository.findByEstadoTrue().stream()
+    Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
+    return usuarioRepository.findByEstadoTrueAndVeterinariaId(veterinariaId).stream()
             .map(this::mapToDTO)
             .toList();
 }
@@ -110,8 +124,9 @@ public List<UsuarioInfoResponseDto> listarActivos(){
 //metodo para desactivar un usuario
     @Transactional
     public void desactivar(Long id){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         //encontrar al usuario al cual vamos a eliminar
-        Usuario usuario= usuarioRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(
+        Usuario usuario= usuarioRepository.findByIdAndVeterinariaId(id,veterinariaId).orElseThrow(()->new ResourceNotFoundException(
                 "No se encontró al usuario con id "+id
         ));
 

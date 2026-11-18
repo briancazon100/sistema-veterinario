@@ -9,26 +9,28 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TurnoRepository extends JpaRepository<Turno, Long> {
 
     //listar todos los turnos pendientes del dia corriente de un veterinario ordenados de los tempranos a los de mas tarde
-    List<Turno> findByVeterinarioIdAndEstadoAndFechaHoraBetweenOrderByFechaHoraAsc(Long veterinarioId, EstadoTurno estado,
+    List<Turno> findByVeterinarioIdAndEstadoAndVeterinariaIdAndFechaHoraBetweenOrderByFechaHoraAsc(Long veterinarioId, EstadoTurno estado,Long veterinariaId,
                                                                                    LocalDateTime inicioDia, LocalDateTime finDia);
 
 
     //listar todos los turnos pendientes desde hoy hacia el futuro
-    List<Turno> findByEstadoAndFechaHoraAfterOrderByFechaHoraAsc(EstadoTurno estado, LocalDateTime hoy);
+    List<Turno> findByEstadoAndVeterinariaIdAndFechaHoraAfterOrderByFechaHoraAsc(EstadoTurno estado, Long veterinariaId, LocalDateTime hoy);
 
 
     //listar todos los turnos que sean anteriores a hoy que esten en estado pendiente
-    List<Turno> findByEstadoAndFechaHoraBefore(EstadoTurno estado, LocalDateTime fechaHoy);
+    List<Turno> findByEstadoAndFechaHoraBeforeAndVeterinariaId(EstadoTurno estado, LocalDateTime fechaHoy, Long veterinariaId);
 
     // Forzamos explícitamente el ordenamiento en el JPQL
     @Query("SELECT t FROM Turno t ORDER BY t.fechaHora DESC")
-    Page<Turno> findByOrderByFechaHoraDesc(Pageable pageable);
+    Page<Turno> findByVeterinariaIdOrderByFechaHoraDesc(Long veterinariaId, Pageable pageable);
+
+    Optional<Turno> findByIdAndVeterinariaId(Long id, Long veterinariaId);
 }

@@ -10,10 +10,12 @@ import java.util.Optional;
 @Repository
 public interface VeterinarioRepository extends JpaRepository<Veterinario, Long> {
     //metodo para buscar una veterinario por su matricula
-    boolean existsByMatricula(String matricula);
+    boolean existsByMatriculaAndVeterinariaId(String matricula, Long veterinariaId);
 
     //listar todos los veterinarios activos
-    List<Veterinario> findByEstadoTrue();
+    List<Veterinario> findByEstadoTrueAndVeterinariaId(Long veterinariaId);
 
-    Optional<Veterinario> findByIdAndEstadoTrue(Long id);
+    Optional<Veterinario> findByIdAndEstadoTrueAndVeterinariaId(Long id, Long veterinariaId);
+
+    boolean existsByIdAndVeterinariaId(Long id, Long veterinariaId);
 }

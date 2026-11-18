@@ -35,4 +35,8 @@ public class Mascota {
 
     @Column(nullable = false)
     private boolean estado=true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "veterinaria_id", nullable = false)
+    private Veterinaria veterinaria;
 }

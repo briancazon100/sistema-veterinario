@@ -33,4 +33,8 @@ public class RegistroVacunas {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mascota_id")
     private Mascota mascota;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "veterinaria_id", nullable = false)
+    private Veterinaria veterinaria;
 }

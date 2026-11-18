@@ -47,4 +47,8 @@ public class ConsultaMedica {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="veterinario_id", nullable = false)
     private Veterinario veterinario;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "veterinaria_id", nullable = false)
+    private Veterinaria veterinaria;
 }

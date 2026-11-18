@@ -5,10 +5,13 @@ import com.veterinaria.api.dtos.desparasitaciones.DesparasitacionesResponseDto;
 import com.veterinaria.api.dtos.mascotaDto.MascotaResponseDto;
 import com.veterinaria.api.entity.Desparasitaciones;
 import com.veterinaria.api.entity.Mascota;
+import com.veterinaria.api.entity.Veterinaria;
 import com.veterinaria.api.exception.BadRequestException;
 import com.veterinaria.api.exception.ResourceNotFoundException;
 import com.veterinaria.api.repository.DesparasitacionesRepository;
 import com.veterinaria.api.repository.MascotaRepository;
+import com.veterinaria.api.repository.VeterinariaRepository;
+import com.veterinaria.api.security.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,10 +31,18 @@ public class DesparasitacionesService {
 
     private final MascotaRepository mascotaRepository;
 
+    private final VeterinariaRepository veterinariaRepository;
+
     //metodo para crear un nuevo registro de desparasitacion
     //aca incluimos Transactional porque no vamos a leer la db, vamos a cambiar/crear un registro
     @Transactional
     public DesparasitacionesResponseDto save (DesparasitacionesRequestDto desparasitacionesRequestDto){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
+        Veterinaria veterinaria= veterinariaRepository.findById(veterinariaId).orElseThrow(()->new ResourceNotFoundException(
+                "No se encontró a la veterinaria con id "+veterinariaId
+        ));
+
+
         //reglas de negocios: validar que la proxima dosis no sea antes que la dosis aplicada
         if(desparasitacionesRequestDto.fechaProximaDosis().isBefore(desparasitacionesRequestDto.fechaAplicacion())){
             throw  new BadRequestException("La próxima dósis debe ser posterior a la aplicada");
@@ -43,7 +54,7 @@ public class DesparasitacionesService {
         }
 
         //validar que la mascota exista
-        Mascota mascota= mascotaRepository.findById(desparasitacionesRequestDto.mascotaId()).orElseThrow(()->
+        Mascota mascota= mascotaRepository.findByIdAndEstadoTrueAndVeterinariaId(desparasitacionesRequestDto.mascotaId(), veterinariaId).orElseThrow(()->
                 new ResourceNotFoundException("La mascota con id "+desparasitacionesRequestDto.mascotaId()+" no existe"));
 
         //pasar el dto que recibimos a entity para luego poder mandarle a la base de datos
@@ -53,6 +64,7 @@ public class DesparasitacionesService {
                 .fechaAplicacion(desparasitacionesRequestDto.fechaAplicacion())
                 .fechaProximaDosis(desparasitacionesRequestDto.fechaProximaDosis())
                 .mascota(mascota)
+                .veterinaria(veterinaria)
                 .build();
 
         //Guardar en la base de datos
@@ -72,8 +84,9 @@ public class DesparasitacionesService {
     //Este método ya no necesita anotación. Automáticamente hereda
     // el "readOnly = true" de la clase porque solo hace un SELECT.
     public List<DesparasitacionesResponseDto> verHistorialDesparasitaciones(Long mascotaId){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         //validar si existe la mascota
-        if(!mascotaRepository.existsById(mascotaId)){
+        if(!mascotaRepository.existsByIdAndVeterinariaId(mascotaId, veterinariaId)){
             throw  new ResourceNotFoundException("No existe la mascota con id "+mascotaId);
         }
 

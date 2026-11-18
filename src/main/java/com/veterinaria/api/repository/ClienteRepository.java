@@ -11,14 +11,18 @@ import java.util.Optional;
 @Repository
 
 public interface ClienteRepository extends JpaRepository<Cliente, Long>, JpaSpecificationExecutor<Cliente> {
-    boolean existsByTelefono(String telefono); //recibe un telefono y devuelve un cliente que tenga ese telefono
+    boolean existsByTelefonoAndVeterinariaId(String telefono, Long veterinariaId); //recibe un telefono y devuelve un cliente que tenga ese telefono
 
-    List<Cliente> findByNombreContainingIgnoreCase(String nombre);
 
-    List<Cliente> findByEstadoTrue();
+    List<Cliente> findByEstadoTrueAndVeterinariaId(Long veterinariaId);
+    List<Cliente> findByVeterinariaId(Long veterinariaId);
 
-    Optional<Cliente> findByIdAndEstadoTrue(Long id);
+    Optional<Cliente> findByIdAndEstadoTrueAndVeterinariaId(Long id, Long veterinariaId);
 
+
+    Optional<Cliente >findByIdAndVeterinariaId(Long id, Long veterinariaId);
+
+    boolean existsByIdAndVeterinariaId(Long id, Long veterinariaId);
 
 
 }

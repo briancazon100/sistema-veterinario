@@ -28,4 +28,8 @@ public class Usuario {
 
     @Column(name = "estado")
     private boolean estado;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "veterinaria_id", nullable = false)
+    private Veterinaria veterinaria;
 }

@@ -4,6 +4,7 @@ import com.veterinaria.api.entity.EstudioComplementario;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EstudioRepository extends JpaRepository<EstudioComplementario, Long> {
 
@@ -11,5 +12,7 @@ public interface EstudioRepository extends JpaRepository<EstudioComplementario, 
     List<EstudioComplementario> findByConsultaMedicaId(Long consultaId);
 
     //listar el historial de estudios de una mascota oredenados desde el más reciente
-    List<EstudioComplementario> findByConsultaMedicaMascotaIdOrderByFechaRealizacionDesc(Long mascotaId);
+    List<EstudioComplementario> findByConsultaMedicaMascotaIdAndVeterinariaIdOrderByFechaRealizacionDesc(Long mascotaId, Long veterinariaId);
+
+    Optional<EstudioComplementario> findByIdAndVeterinariaId(Long id, Long veterinariaId);
 }

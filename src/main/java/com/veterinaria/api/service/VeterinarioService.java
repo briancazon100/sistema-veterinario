@@ -6,10 +6,13 @@ import com.veterinaria.api.dtos.veterinarioDto.VeterinarioRequestDto;
 import com.veterinaria.api.dtos.veterinarioDto.VeterinarioResponseDto;
 import com.veterinaria.api.entity.Cliente;
 import com.veterinaria.api.entity.Mascota;
+import com.veterinaria.api.entity.Veterinaria;
 import com.veterinaria.api.entity.Veterinario;
 import com.veterinaria.api.exception.BadRequestException;
 import com.veterinaria.api.exception.ResourceNotFoundException;
+import com.veterinaria.api.repository.VeterinariaRepository;
 import com.veterinaria.api.repository.VeterinarioRepository;
+import com.veterinaria.api.security.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,13 +24,21 @@ public class VeterinarioService {
 
     private final VeterinarioRepository veterinarioRepository;
 
+    private final VeterinariaRepository veterinariaRepository;
+
 
     //metodos
 
     //metodo para guardar un veterinario
     public VeterinarioResponseDto save(VeterinarioRequestDto veterinarioRequestDto){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
+        Veterinaria veterinaria= veterinariaRepository.findById(veterinariaId).orElseThrow(()->new ResourceNotFoundException(
+                "No se encontró la veterinaria con el id "+veterinariaId
+        ));
+
+
         //1.regla de nogocio: validar que la matricula no se repita con el de otro veterinario
-        if(veterinarioRepository.existsByMatricula(veterinarioRequestDto.matricula())){
+        if(veterinarioRepository.existsByMatriculaAndVeterinariaId(veterinarioRequestDto.matricula(),veterinariaId)){
             // Lanzamos BadRequestException
             throw new BadRequestException("Ya se encuentra registrado un veterinario con la matrícula: "+veterinarioRequestDto.matricula());
         }
@@ -39,6 +50,7 @@ public class VeterinarioService {
                 .matricula(veterinarioRequestDto.matricula())
                 .especialidad(veterinarioRequestDto.especialidad())
                 .estado(true)
+                .veterinaria(veterinaria)
                 .build();
 
         //3. guardar en la base de datos
@@ -51,10 +63,11 @@ public class VeterinarioService {
 
     //metodo para buscar por id
     public VeterinarioResponseDto findById(Long id){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         //1. regla de negocio: validar si existe el veterinario
         // Buscamos por ID. Si no existe, lanzamos una excepción inmediatamente.
         //// Lanzamos ResourceNotFoundException
-        Veterinario veterinario= veterinarioRepository.findByIdAndEstadoTrue(id).orElseThrow(()-> new ResourceNotFoundException(
+        Veterinario veterinario= veterinarioRepository.findByIdAndEstadoTrueAndVeterinariaId(id,veterinariaId).orElseThrow(()-> new ResourceNotFoundException(
                 "No se encontró al veterinario con id :"+id));
 
         //devoler en dto el veterinario encontrado
@@ -65,8 +78,9 @@ public class VeterinarioService {
 
     //metodo para listar todos los veterinarios activos
     public List<VeterinarioResponseDto> findAll(){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         // Obtenemos todos los veterinarios de la BD y los mapeamos a DTO usando Streams
-        return veterinarioRepository.findByEstadoTrue().stream()
+        return veterinarioRepository.findByEstadoTrueAndVeterinariaId(veterinariaId).stream()
                 .map(this::mapToDTO)
                 .toList();
     }
@@ -76,13 +90,14 @@ public class VeterinarioService {
 
     //metodo para actualizar un veterinario
     public VeterinarioResponseDto update(Long id, VeterinarioRequestDto veterinarioRequestDto){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         //1 regla de negocio: validar si existe ese veterinario
-        Veterinario veterinario=veterinarioRepository.findByIdAndEstadoTrue(id).orElseThrow(()-> new ResourceNotFoundException(
+        Veterinario veterinario=veterinarioRepository.findByIdAndEstadoTrueAndVeterinariaId(id,veterinariaId).orElseThrow(()-> new ResourceNotFoundException(
                 "No se encontró el veterinario con id "+id));
 
         //validar que si cambió de casualidad de matrícula, que no sea igual a la de otro profesional
         if(!veterinarioRequestDto.matricula().equals(veterinario.getMatricula())
-                && veterinarioRepository.existsByMatricula(veterinarioRequestDto.matricula())){
+                && veterinarioRepository.existsByMatriculaAndVeterinariaId(veterinarioRequestDto.matricula(),veterinariaId)){
             throw new BadRequestException("Ya existe un veterinario con la maátricula "+veterinarioRequestDto.matricula());
         }
 
@@ -105,8 +120,9 @@ public class VeterinarioService {
 
     //metodo para eliminar un veterinario
     public void delete(Long id ){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         //verificamos que exista el vet
-        Veterinario veterinario= veterinarioRepository.findByIdAndEstadoTrue(id).orElseThrow(()-> new ResourceNotFoundException(
+        Veterinario veterinario= veterinarioRepository.findByIdAndEstadoTrueAndVeterinariaId(id,veterinariaId).orElseThrow(()-> new ResourceNotFoundException(
                 "No se encontró al veterinario con id "+id
         ));
 

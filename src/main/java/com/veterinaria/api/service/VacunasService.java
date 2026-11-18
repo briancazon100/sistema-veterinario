@@ -3,15 +3,14 @@ package com.veterinaria.api.service;
 import com.veterinaria.api.dtos.consultaMedicaDto.ConsultaMedicaResponseDto;
 import com.veterinaria.api.dtos.vacunasDto.VacunasRequestDto;
 import com.veterinaria.api.dtos.vacunasDto.VacunasResponseDto;
-import com.veterinaria.api.entity.ConsultaMedica;
-import com.veterinaria.api.entity.Mascota;
-import com.veterinaria.api.entity.RegistroVacunas;
-import com.veterinaria.api.entity.Veterinario;
+import com.veterinaria.api.entity.*;
 import com.veterinaria.api.exception.BadRequestException;
 import com.veterinaria.api.exception.ResourceNotFoundException;
 import com.veterinaria.api.repository.MascotaRepository;
 import com.veterinaria.api.repository.VacunasRepository;
+import com.veterinaria.api.repository.VeterinariaRepository;
 import com.veterinaria.api.repository.VeterinarioRepository;
+import com.veterinaria.api.security.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,16 +30,26 @@ public class VacunasService {
     private final VeterinarioRepository veterinarioRepository;
 
 
+    private final VeterinariaRepository veterinariaRepository;
+
+
 
     //metodo para guardar un registro de vacuna
     @Transactional // <-- Para asegurar que se guarde todo o se deshaga si hay error
     public VacunasResponseDto save(VacunasRequestDto vacunasRequestDto){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
+        Veterinaria veterinaria=veterinariaRepository.findById(veterinariaId).orElseThrow(()->new ResourceNotFoundException(
+                "No existe esa veterinaria con el id "+veterinariaId
+        ));
+
         // validar si existe el veterinario y la mascota
         // en caso de que lo encuentre lo guarda en el objeto, si no, lanza inmediatamente la excepción
-        Mascota mascota=  mascotaRepository.findById(vacunasRequestDto.mascotaId()).orElseThrow(()->
+        Mascota mascota=  mascotaRepository.findByIdAndEstadoTrueAndVeterinariaId(vacunasRequestDto.mascotaId(),veterinariaId)
+                .orElseThrow(()->
                 new ResourceNotFoundException("No se encontró a la mascota con id "+vacunasRequestDto.mascotaId()));
 
-        Veterinario veterinario = veterinarioRepository.findById(vacunasRequestDto.veterinarioId()).orElseThrow(()->
+        Veterinario veterinario = veterinarioRepository.findByIdAndEstadoTrueAndVeterinariaId
+                (vacunasRequestDto.veterinarioId(),veterinariaId).orElseThrow(()->
                 new ResourceNotFoundException("No se encontró al veterinario con id  "+vacunasRequestDto.veterinarioId()));
 
         //validar que  la fecha de aplicacion no sea posterior a esa fecha, aca no existen viajes en el futuro
@@ -61,6 +70,7 @@ public class VacunasService {
                 .fechaProximaDosis(vacunasRequestDto.fechaProximaDosis())
                 .mascota(mascota)
                 .veterinario(veterinario)
+                .veterinaria(veterinaria)
                 .build();
 
         //pasar a la base de datos
@@ -77,12 +87,13 @@ public class VacunasService {
     // metodo para listar todas los registros de vacunas de un animal(por su id)
     @Transactional(readOnly = true) // <-- Para optimizar la lectura
     public List<VacunasResponseDto> verHistorialVacunas(Long id){
-        if(!mascotaRepository.existsById(id)){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
+        if(!mascotaRepository.existsByIdAndVeterinariaId(id,veterinariaId)){
             throw  new ResourceNotFoundException("No se encontró a la mascota con id "+id);
         }
 
         // buscar en la db la lista de todas la consultas de una mascota y luego a eso pasarlo a dto y retonar, algo mas directp
-        return vacunasRepository.findByMascotaIdOrderByFechaAplicacionDesc(id)
+        return vacunasRepository.findByMascotaIdAndVeterinariaIdOrderByFechaAplicacionDesc(id, veterinariaId)
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());

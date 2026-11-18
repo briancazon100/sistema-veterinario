@@ -6,12 +6,15 @@ import com.veterinaria.api.dtos.estudiosComplemenetariosDto.ResultadoEstudiosDto
 import com.veterinaria.api.entity.ConsultaMedica;
 import com.veterinaria.api.entity.Desparasitaciones;
 import com.veterinaria.api.entity.EstudioComplementario;
+import com.veterinaria.api.entity.Veterinaria;
 import com.veterinaria.api.entity.enums.EstadoEstudio;
 import com.veterinaria.api.exception.BadRequestException;
 import com.veterinaria.api.exception.ResourceNotFoundException;
 import com.veterinaria.api.repository.ConsultaMedicaRepository;
 import com.veterinaria.api.repository.EstudioRepository;
 import com.veterinaria.api.repository.MascotaRepository;
+import com.veterinaria.api.repository.VeterinariaRepository;
+import com.veterinaria.api.security.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,14 +34,19 @@ public class EstudioService {
     private final MascotaRepository mascotaRepository;
     private final CloudinaryService cloudinaryService;
 
-
+    private final VeterinariaRepository veterinariaRepository;
 
 
     //metodo para crear una nueva orden de estudios complementarios
     @Transactional
     public EstudiosResponseDto crearOrden(EstudiosRequestDto estudiosRequestDto){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
+        Veterinaria veterinaria= veterinariaRepository.findById(veterinariaId).orElseThrow(()-> new ResourceNotFoundException(
+                "No se encotró a la veterinaria con id  "+veterinariaId
+        ));
         //encontrar la consulta
-        ConsultaMedica consultaMedica= consultaMedicaRepository.findById(estudiosRequestDto.consultaId()).orElseThrow(()->
+        ConsultaMedica consultaMedica= consultaMedicaRepository.findByIdAndVeterinariaId(estudiosRequestDto.consultaId(),
+                veterinariaId).orElseThrow(()->
                 new ResourceNotFoundException("No se encontró la consulta con id "+estudiosRequestDto.consultaId()));
 
         //pasar de dto a entity
@@ -48,6 +56,7 @@ public class EstudioService {
                 .fechaSolicitud(LocalDate.now())
                 .estado(EstadoEstudio.PENDIENTE)
                 .consultaMedica(consultaMedica)
+                .veterinaria(veterinaria)
                 .build();
 
         //guardar en la base de datos
@@ -63,10 +72,12 @@ public class EstudioService {
 
     // metodo para cargar el resultado cuando el usuario termine de cargar los resultados
     @Transactional
-    public EstudiosResponseDto cargarResultado(Long idEstudio, ResultadoEstudiosDto resultadoEstudiosDto, MultipartFile archivo) throws IOException {
+    public EstudiosResponseDto cargarResultado(Long idEstudio, ResultadoEstudiosDto resultadoEstudiosDto, MultipartFile archivo)
+            throws IOException {
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         //encontrar el estudio
-        EstudioComplementario estudioComplementario= estudioRepository.findById(idEstudio).orElseThrow(()-> new
-                ResourceNotFoundException(("No se encontró el estudio con id "+idEstudio)));
+        EstudioComplementario estudioComplementario= estudioRepository.findByIdAndVeterinariaId(idEstudio, veterinariaId )
+                .orElseThrow(()-> new ResourceNotFoundException(("No se encontró el estudio con id "+idEstudio)));
 
         //validar que el estudio esté en estado pendiente
         if (!estudioComplementario.getEstado().equals(EstadoEstudio.PENDIENTE)){
@@ -104,8 +115,10 @@ public class EstudioService {
     //metodo para cancelar la orden
     @Transactional
     public EstudiosResponseDto cancelarOrden(Long estudioId){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         //buscar la orden
-        EstudioComplementario estudioComplementario= estudioRepository.findById(estudioId).orElseThrow(()-> new
+        EstudioComplementario estudioComplementario= estudioRepository.findByIdAndVeterinariaId(estudioId, veterinariaId).
+                orElseThrow(()-> new
                 ResourceNotFoundException("No se econtró el estudio con id "+estudioId));
 
         //validar que si el estado del estudio es realizado, ya no se puede cancelar
@@ -127,8 +140,9 @@ public class EstudioService {
 
     //listar los estudios de una consulta
     public List<EstudiosResponseDto> verEstudiosPorConsultaId(Long consultaId){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         //validar que exista la consulta
-        if(!consultaMedicaRepository.existsById(consultaId)){
+        if(!consultaMedicaRepository.existsByIdAndVeterinariaId(consultaId, veterinariaId)){
             throw new ResourceNotFoundException("No existe la consulta con id"+consultaId);
         }
 
@@ -140,12 +154,15 @@ public class EstudioService {
 
     //listar todos los estudios realizados en la historia de una mascota del mas reciente
     public List<EstudiosResponseDto> verHistorialEstudios(Long mascotaId){
+
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         //validar que exista la mascota
-        if(!mascotaRepository.existsById(mascotaId)){
+        if(!mascotaRepository.existsByIdAndVeterinariaId(mascotaId, veterinariaId)){
             throw  new ResourceNotFoundException("No existe la mascota con id "+mascotaId);
         }
 
-        return estudioRepository.findByConsultaMedicaMascotaIdOrderByFechaRealizacionDesc(mascotaId).stream()
+        return estudioRepository.findByConsultaMedicaMascotaIdAndVeterinariaIdOrderByFechaRealizacionDesc(
+                mascotaId, veterinariaId).stream()
                 .map(this::mapToDTO)
                 .toList();
     }
