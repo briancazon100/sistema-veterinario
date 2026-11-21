@@ -134,7 +134,6 @@ public class TurnoService {
 
 
 
-
     //listar turnos por paginacion
     public Page<TurnoResponseDto> listarTurnosPaginacion(Pageable pageable){
         Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
@@ -142,6 +141,7 @@ public class TurnoService {
 
         return turnos.map(this::mapToDTO);
     }
+
 
     //metodo para listar todos los turnos pendientes desde hoy
     public List<TurnoResponseDto> listarTodosTurnosPendientes(){

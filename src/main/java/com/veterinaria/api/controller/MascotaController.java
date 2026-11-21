@@ -6,9 +6,12 @@ import com.veterinaria.api.service.MascotaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -62,6 +65,14 @@ public class MascotaController {
         return ResponseEntity.noContent().build();
     }
 
+
+    //endpoint para subir la foto de la mascota
+    @PostMapping(value = "/{id}/foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MascotaResponseDto> subirFoto(
+            @PathVariable Long id,
+            @RequestParam("archivo") MultipartFile archivo) throws IOException {
+        return ResponseEntity.ok(mascotaService.subirFoto(id, archivo));
+    }
 
 
 

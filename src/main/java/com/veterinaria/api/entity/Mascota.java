@@ -39,4 +39,7 @@ public class Mascota {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "veterinaria_id", nullable = false)
     private Veterinaria veterinaria;
+
+    @Column(name = "foto_url", length = 500)
+    private String fotoUrl;
 }

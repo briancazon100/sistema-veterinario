@@ -25,6 +25,9 @@ public record MascotaRequestDto(
         LocalDate fechaNacimiento,
 
         @NotNull(message = "El ID del cliente (dueño) es obligatorio")
-        Long clienteId
+        Long clienteId,
+
+
+        String fotoUrl
 ) {
 }

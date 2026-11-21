@@ -14,7 +14,9 @@ import com.veterinaria.api.security.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,6 +28,7 @@ public class MascotaService {
     private final ClienteRepository clienteRepository;
     private final MascotaRepository mascotaRepository;
     private final VeterinariaRepository veterinariaRepository;
+    private final CloudinaryService cloudinaryService;
 
     //metodo para guardar mascota
     public MascotaResponseDto save(MascotaRequestDto mascotaRequestDto){
@@ -139,6 +142,23 @@ public class MascotaService {
     }
 
 
+    public MascotaResponseDto subirFoto(Long id, MultipartFile archivo) throws IOException {
+        Long veterinariaId = TenantContext.getCurrentTenant();
+
+        // 1. Buscar la mascota validando que pertenezca a la veterinaria activa
+        Mascota mascota = mascotaRepository.findByIdAndEstadoTrueAndVeterinariaId(id, veterinariaId)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró la mascota con id " + id));
+
+        // 2. Subir a Cloudinary con validación de imagen (JPG/PNG/WEBP, max 5MB) y carpeta por clínica
+        String urlFoto = cloudinaryService.subirImagenMascota(archivo, veterinariaId);
+
+        // 3. Guardar la URL en la mascota
+        mascota.setFotoUrl(urlFoto);
+        Mascota actualizada = mascotaRepository.save(mascota);
+
+        return mapToDTO(actualizada);
+    }
+
 
     // Método helper para no repetir el mapeo a DTO
     private MascotaResponseDto mapToDTO(Mascota mascota) {
@@ -151,7 +171,8 @@ public class MascotaService {
                 mascota.getFecha_nacimiento(),
                 mascota.getCliente().getId(),
                 nombreCliente,
-                mascota.isEstado()
+                mascota.isEstado(),
+                mascota.getFotoUrl()
         );
     }
 
