@@ -1,5 +1,6 @@
 package com.veterinaria.api.controller;
 
+import com.veterinaria.api.dtos.vacunasDto.VacunaEditRequestDto;
 import com.veterinaria.api.dtos.vacunasDto.VacunasRequestDto;
 import com.veterinaria.api.dtos.vacunasDto.VacunasResponseDto;
 import com.veterinaria.api.service.VacunasService;
@@ -31,6 +32,13 @@ public class VacunasController {
     @GetMapping("/{id}")
     public ResponseEntity<List<VacunasResponseDto>> verHistorialVacunas(@PathVariable Long id){
         return ResponseEntity.ok(vacunasService.verHistorialVacunas(id));
+    }
+
+
+    //endpoint para actualizar los datos de un registro de vacuna, donde solamente se podran modificar el nombre, y las fechas
+    @PatchMapping("/{id}/edit")
+    public ResponseEntity<VacunasResponseDto> editar(@PathVariable Long id, @RequestBody VacunaEditRequestDto vacunaEditRequestDto){
+        return ResponseEntity.ok(vacunasService.editar(id, vacunaEditRequestDto));
     }
 
 }

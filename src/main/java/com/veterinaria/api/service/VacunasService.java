@@ -1,6 +1,7 @@
 package com.veterinaria.api.service;
 
 import com.veterinaria.api.dtos.consultaMedicaDto.ConsultaMedicaResponseDto;
+import com.veterinaria.api.dtos.vacunasDto.VacunaEditRequestDto;
 import com.veterinaria.api.dtos.vacunasDto.VacunasRequestDto;
 import com.veterinaria.api.dtos.vacunasDto.VacunasResponseDto;
 import com.veterinaria.api.entity.*;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class VacunasService {
 
     private final VacunasRepository vacunasRepository; //inyeccion de dependencias sin constructor codeeado gracias a @required
@@ -84,8 +86,42 @@ public class VacunasService {
 
 
 
+    //metodo para actualizar un registro de vacuna, esto es para darle al usuario la chance de editar un registro en
+    //caso de que se haya mandando un moco por ejemplo con las fechas o el propio nombre de la vacuna aplicada
+    @Transactional
+    public VacunasResponseDto editar(Long vacunaId, VacunaEditRequestDto vacunaEditRequestDto){
+        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
+        //validar que las fecha de aplicacion no sea posterior al dia corriente
+        if(vacunaEditRequestDto.fechaAplicacion().isAfter(LocalDate.now())){
+            throw new BadRequestException("La fecha de aplicación no debe ser posterior a hoy");
+        }
+
+        //validar que la proxima dosis no sea antes de la fecha de aplicacion
+        if(vacunaEditRequestDto.fechaProximaDosis().isBefore(vacunaEditRequestDto.fechaAplicacion())){
+            throw  new BadRequestException("La fecha de la proxima dosis no debe ser anterior a la fecha de aplicación");
+        }
+
+        //obtenemos el registro de la vacuna a actualizar por su ID
+        RegistroVacunas registroVacunas= vacunasRepository.findByIdAndVeterinariaId(vacunaId, veterinariaId).orElseThrow(()->
+                new ResourceNotFoundException("No se encontró la vacuna con id "+vacunaId));
+
+
+
+        //actualizamos los datos viejos por los entrantes que vienen desde el dto
+        registroVacunas.setNombreVacuna(vacunaEditRequestDto.nombreVacuna());
+        registroVacunas.setFechaAplicacion(vacunaEditRequestDto.fechaAplicacion());
+        registroVacunas.setFechaProximaDosis(vacunaEditRequestDto.fechaProximaDosis());
+
+
+
+        //guardar en la db
+        RegistroVacunas vacunaActualizada=vacunasRepository.save(registroVacunas);
+
+        return mapToDTO(vacunaActualizada);
+    }
+
     // metodo para listar todas los registros de vacunas de un animal(por su id)
-    @Transactional(readOnly = true) // <-- Para optimizar la lectura
+
     public List<VacunasResponseDto> verHistorialVacunas(Long id){
         Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         if(!mascotaRepository.existsByIdAndVeterinariaId(id,veterinariaId)){

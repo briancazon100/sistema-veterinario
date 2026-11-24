@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Repository
@@ -12,4 +13,8 @@ public interface VacunasRepository extends JpaRepository<RegistroVacunas, Long> 
 
     //metodo para listar todas la vacunas de un animal de forma desc (de los mas nuevos a los viejos)
     List<RegistroVacunas> findByMascotaIdAndVeterinariaIdOrderByFechaAplicacionDesc(Long mascota_id, Long veterinariaId);
+
+
+
+    Optional<RegistroVacunas> findByIdAndVeterinariaId(Long id, Long veterinariaId);
 }
