@@ -28,6 +28,10 @@ public class Desparasitaciones {
     private LocalDate fechaProximaDosis;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "veterinario_id", nullable = false)
+    private Veterinario veterinario;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mascota_id", nullable = false)
     private Mascota mascota;
 

@@ -17,6 +17,9 @@ public record DesparasitacionesRequestDto(
         LocalDate fechaProximaDosis,
 
         @NotNull(message = "El id de la mascota es obligatorio")
-        Long mascotaId
+        Long mascotaId,
+
+        @NotNull(message = "El id del veterinario es obligatorio")
+        Long veterinarioId
 ) {
 }

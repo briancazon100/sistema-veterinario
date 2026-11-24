@@ -8,6 +8,7 @@ public record DesparasitacionesResponseDto(
         String productoUsado,
         LocalDate fechaAplicacion,
         LocalDate fechaProximaDosis,
-        Long mascotaId
+        Long mascotaId,
+        Long veterinarioId
 ) {
 }

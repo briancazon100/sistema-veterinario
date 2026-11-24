@@ -1,5 +1,6 @@
 package com.veterinaria.api.controller;
 
+import com.veterinaria.api.dtos.desparasitaciones.DesparasitacionesEditRequestDto;
 import com.veterinaria.api.dtos.desparasitaciones.DesparasitacionesRequestDto;
 import com.veterinaria.api.dtos.desparasitaciones.DesparasitacionesResponseDto;
 import com.veterinaria.api.service.DesparasitacionesService;
@@ -30,5 +31,13 @@ public class DesparasitacionesController {
     @GetMapping("/{mascotaId}")
     public ResponseEntity<List<DesparasitacionesResponseDto>> verHistorialDesparacitaciones(@PathVariable Long mascotaId){
         return ResponseEntity.ok(desparasitacionesService.verHistorialDesparasitaciones(mascotaId));
+    }
+
+
+
+    //endpoint paara editar un registro de desparasitaciones
+    @PatchMapping("/{id}/edit")
+    public ResponseEntity<DesparasitacionesResponseDto> editar(@PathVariable Long id, @RequestBody DesparasitacionesEditRequestDto dto){
+        return ResponseEntity.ok(desparasitacionesService.editar(id, dto));
     }
 }
