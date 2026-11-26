@@ -5,20 +5,25 @@ import com.veterinaria.api.dtos.mascotaDto.MascotaResponseDto;
 import com.veterinaria.api.entity.Cliente;
 import com.veterinaria.api.entity.Mascota;
 import com.veterinaria.api.entity.Veterinaria;
-import com.veterinaria.api.exception.BadRequestException;
+
 import com.veterinaria.api.exception.ResourceNotFoundException;
 import com.veterinaria.api.repository.ClienteRepository;
 import com.veterinaria.api.repository.MascotaRepository;
 import com.veterinaria.api.repository.VeterinariaRepository;
+import com.veterinaria.api.repository.specification.MascotaSpecification;
 import com.veterinaria.api.security.TenantContext;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+
+
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 
 @Service
@@ -157,6 +162,24 @@ public class MascotaService {
         Mascota actualizada = mascotaRepository.save(mascota);
 
         return mapToDTO(actualizada);
+    }
+
+    public Page<MascotaResponseDto>
+    buscarMascotas(
+            String nombre,
+            String especie,
+            String raza,
+            Long clienteId,
+            Pageable pageable) {
+
+        Long veterinariaId = TenantContext.getCurrentTenant();
+
+        Specification<Mascota> spec = MascotaSpecification.filtrarMascotas(
+                nombre, especie, raza, clienteId, veterinariaId
+        );
+
+        return mascotaRepository.findAll(spec, pageable)
+                .map(this::mapToDTO);
     }
 
 

@@ -5,6 +5,9 @@ import com.veterinaria.api.dtos.clienteDto.ClienteResponseDto;
 import com.veterinaria.api.service.ClienteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -72,13 +75,14 @@ public class ClienteController {
 
     //endpoint para buscar clientes por nombre, apellido, tel, etc..
     @GetMapping("/buscar")
-    public ResponseEntity<List<ClienteResponseDto>> buscarClientes(
+    public ResponseEntity<Page<ClienteResponseDto>> buscarClientes(
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String apellido,
             @RequestParam(required = false) String telefono,
-            @RequestParam(required = false) String direccion) {
+            @RequestParam(required = false) String direccion,@PageableDefault(page = 0, size = 10)
+            Pageable pageable) {
 
-        List<ClienteResponseDto> resultados = clienteService.buscarClientes(nombre, apellido, telefono, direccion);
+        Page<ClienteResponseDto> resultados = clienteService.buscarClientes(nombre, apellido, telefono, direccion, pageable);
         return ResponseEntity.ok(resultados);
     }
 

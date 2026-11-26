@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -42,6 +43,7 @@ public class DesparasitacionesService {
     //aca incluimos Transactional porque no vamos a leer la db, vamos a cambiar/crear un registro
     @Transactional
     public DesparasitacionesResponseDto save (DesparasitacionesRequestDto desparasitacionesRequestDto){
+        LocalDate hoyArgentina = LocalDate.now(ZoneId.of("America/Argentina/Jujuy"));
         Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         Veterinaria veterinaria= veterinariaRepository.findById(veterinariaId).orElseThrow(()->new ResourceNotFoundException(
                 "No se encontró a la veterinaria con id "+veterinariaId
@@ -54,7 +56,7 @@ public class DesparasitacionesService {
         }
 
         //validar que la fecha aplicada no sea posterior a hoy
-        if(desparasitacionesRequestDto.fechaAplicacion().isAfter(LocalDate.now())){
+        if(desparasitacionesRequestDto.fechaAplicacion().isAfter(hoyArgentina)){
             throw new BadRequestException("La fecha de aplicación no debe ser posterior a hoy");
         }
 
@@ -111,9 +113,10 @@ public class DesparasitacionesService {
     //metodo para editar un registro de desparasitacion
     @Transactional
     public DesparasitacionesResponseDto editar(Long idRegistroDesparasitacion, DesparasitacionesEditRequestDto dto){
+        LocalDate hoyArgentina = LocalDate.now(ZoneId.of("America/Argentina/Jujuy"));
         Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         //validar que la fecha de aplicacion no sea posterior a hoy
-        if(dto.fechaAplicacion().isAfter(LocalDate.now())){
+        if(dto.fechaAplicacion().isAfter(hoyArgentina)){
             throw new BadRequestException("La fecha de aplicación no debe ser posterior a hoy");
         }
 

@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -111,24 +112,19 @@ public class TurnoService {
     //metodo para expirar turnos pendientes
     // Esta anotación ejecuta este método automáticamente todos los días a la 1:00 AM
     //@Scheduled(cron = "0 * * * * *")
-    @Scheduled(cron = "0 0 1 * * *")
+    @Scheduled(cron = "0 0 1 * * *", zone = "America/Argentina/Jujuy")
     @Transactional
     public void expirarTurnosPendientes(){
-        Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
-        LocalDateTime hoy=LocalDateTime.now();
+        LocalDateTime ahora = LocalDateTime.now(ZoneId.of("America/Argentina/Jujuy"));
 
-        //buscamos en la db todos los turnos anteriores a hoy que estan en estado pendiente
-        List<Turno> turnosVencidos=turnoRepository.findByEstadoAndFechaHoraBeforeAndVeterinariaId(EstadoTurno.PENDIENTE, hoy,
-                veterinariaId);
+        List<Turno> turnosVencidos = turnoRepository.findByEstadoAndFechaHoraBefore(EstadoTurno.PENDIENTE, ahora);
 
-        if(!turnosVencidos.isEmpty()){
-            for(Turno turno:turnosVencidos){
+        if (!turnosVencidos.isEmpty()) {
+            for (Turno turno : turnosVencidos) {
                 turno.setEstado(EstadoTurno.NO_ASISTIO);
             }
-            //guardamos en la db los cambios
             turnoRepository.saveAll(turnosVencidos);
         }
-
 
     }
 

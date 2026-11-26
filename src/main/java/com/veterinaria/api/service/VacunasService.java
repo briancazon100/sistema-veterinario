@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,7 @@ public class VacunasService {
     //metodo para guardar un registro de vacuna
     @Transactional // <-- Para asegurar que se guarde todo o se deshaga si hay error
     public VacunasResponseDto save(VacunasRequestDto vacunasRequestDto){
+        LocalDate hoyArgentina = LocalDate.now(ZoneId.of("America/Argentina/Jujuy"));
         Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         Veterinaria veterinaria=veterinariaRepository.findById(veterinariaId).orElseThrow(()->new ResourceNotFoundException(
                 "No existe esa veterinaria con el id "+veterinariaId
@@ -55,7 +57,7 @@ public class VacunasService {
                 new ResourceNotFoundException("No se encontró al veterinario con id  "+vacunasRequestDto.veterinarioId()));
 
         //validar que  la fecha de aplicacion no sea posterior a esa fecha, aca no existen viajes en el futuro
-        if(vacunasRequestDto.fechaAplicacion().isAfter(LocalDate.now())){
+        if(vacunasRequestDto.fechaAplicacion().isAfter(hoyArgentina)){
             throw new BadRequestException("La fecha de aplicación no debe ser posterior a hoy");
         }
 
@@ -91,8 +93,10 @@ public class VacunasService {
     @Transactional
     public VacunasResponseDto editar(Long vacunaId, VacunaEditRequestDto vacunaEditRequestDto){
         Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
+
+        LocalDate hoyArgentina = LocalDate.now(ZoneId.of("America/Argentina/Jujuy"));
         //validar que las fecha de aplicacion no sea posterior al dia corriente
-        if(vacunaEditRequestDto.fechaAplicacion().isAfter(LocalDate.now())){
+        if(vacunaEditRequestDto.fechaAplicacion().isAfter(hoyArgentina)){
             throw new BadRequestException("La fecha de aplicación no debe ser posterior a hoy");
         }
 

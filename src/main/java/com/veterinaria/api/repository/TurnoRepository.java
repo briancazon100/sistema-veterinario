@@ -26,7 +26,7 @@ public interface TurnoRepository extends JpaRepository<Turno, Long> {
 
 
     //listar todos los turnos que sean anteriores a hoy que esten en estado pendiente
-    List<Turno> findByEstadoAndFechaHoraBeforeAndVeterinariaId(EstadoTurno estado, LocalDateTime fechaHoy, Long veterinariaId);
+    List<Turno> findByEstadoAndFechaHoraBefore(EstadoTurno estado, LocalDateTime fechaHoy);
 
   
     Page<Turno> findByVeterinariaIdOrderByFechaHoraDesc(Long veterinariaId, Pageable pageable);

@@ -5,6 +5,10 @@ import com.veterinaria.api.dtos.mascotaDto.MascotaResponseDto;
 import com.veterinaria.api.service.MascotaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -72,6 +76,20 @@ public class MascotaController {
             @PathVariable Long id,
             @RequestParam("archivo") MultipartFile archivo) throws IOException {
         return ResponseEntity.ok(mascotaService.subirFoto(id, archivo));
+    }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<Page<MascotaResponseDto>> buscarMascotas(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String especie,
+            @RequestParam(required = false) String raza,
+            @RequestParam(required = false) Long clienteId,
+            @PageableDefault(page = 0, size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        Page<MascotaResponseDto> resultados = mascotaService.buscarMascotas(
+                nombre, especie, raza, clienteId, pageable
+        );
+        return ResponseEntity.ok(resultados);
     }
 
 

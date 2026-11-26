@@ -16,7 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -80,18 +81,16 @@ public class ClienteService {
                 .toList();
     }
 
-    public List<ClienteResponseDto> buscarClientes(String nombre, String apellido, String telefono, String direccion) {
+    public Page<ClienteResponseDto> buscarClientes(String nombre, String apellido, String telefono, String direccion, Pageable pageable) {
         Long veterinariaId = TenantContext.getCurrentTenant();  //obtenemos el id de la veterinaria activa
         // Creamos la especificación con los datos que llegaron
         Specification<Cliente> spec = ClienteSpecification.filtrarClientes(nombre, apellido, telefono, direccion, veterinariaId);
 
         // Ejecutamos la búsqueda dinámica
-        List<Cliente> clientes = clienteRepository.findAll(spec);
+        Page<Cliente> clientes = clienteRepository.findAll(spec, pageable);
 
         // Mapeamos a DTO y devolvemos
-        return clientes.stream()
-                .map(this::mapToDTO)
-                .toList();
+        return clientes.map(this::mapToDTO);
     }
 
 
