@@ -1,5 +1,6 @@
 package com.veterinaria.api.entity;
 
+import com.veterinaria.api.entity.enums.SexoMascota;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -42,4 +43,19 @@ public class Mascota {
 
     @Column(name = "foto_url", length = 500)
     private String fotoUrl;
+
+    @Enumerated(EnumType.STRING)//le decís a Spring que use este Enum y lo guarde como texto en MySQL
+    @Column(name = "sexo", nullable = false)
+    private SexoMascota sexo;
+
+    @Column(name = "esterilizado", nullable = false)
+    private boolean esterilizado;
+
+    @Column(name = "alergias_conocidas")
+    private String alergiasConocidas;
+
+    @Column(name = "condiciones_cronicas")
+    private String condicionesCronicas;
+
+
 }

@@ -1,5 +1,6 @@
 package com.veterinaria.api.dtos.mascotaDto;
 
+import com.veterinaria.api.entity.enums.SexoMascota;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -28,6 +29,17 @@ public record MascotaRequestDto(
         Long clienteId,
 
 
-        String fotoUrl
+        String fotoUrl,
+
+        @NotNull(message = "El sexo de la mascota es obligatorio")
+        SexoMascota sexo,
+
+        @NotNull(message = "Debe poner si la mascota está esterilizada o no")
+        boolean esterilizado,
+
+        String alergiasConocidas,
+
+
+        String condicionesCronicas
 ) {
 }

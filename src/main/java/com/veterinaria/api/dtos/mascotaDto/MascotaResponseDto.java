@@ -1,5 +1,7 @@
 package com.veterinaria.api.dtos.mascotaDto;
 
+import com.veterinaria.api.entity.enums.SexoMascota;
+
 import java.time.LocalDate;
 
 public record MascotaResponseDto(
@@ -11,6 +13,10 @@ public record MascotaResponseDto(
         Long clienteId,
         String nombreClienteCompleto, // Muestra ej: "Juan Pérez" en lugar de solo el ID
         boolean estado,
-        String fotoUrl
+        String fotoUrl,
+        SexoMascota sexo,
+        boolean esterilizado,
+        String alergiasConocidas,
+        String condicionesCronicas
 ) {
 }

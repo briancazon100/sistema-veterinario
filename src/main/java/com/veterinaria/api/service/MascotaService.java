@@ -6,6 +6,7 @@ import com.veterinaria.api.entity.Cliente;
 import com.veterinaria.api.entity.Mascota;
 import com.veterinaria.api.entity.Veterinaria;
 
+import com.veterinaria.api.entity.enums.SexoMascota;
 import com.veterinaria.api.exception.ResourceNotFoundException;
 import com.veterinaria.api.repository.ClienteRepository;
 import com.veterinaria.api.repository.MascotaRepository;
@@ -55,6 +56,10 @@ public class MascotaService {
                 .cliente(cliente)
                 .estado(true)
                 .veterinaria(veterinaria)
+                .sexo(mascotaRequestDto.sexo())
+                .esterilizado(mascotaRequestDto.esterilizado())
+                .alergiasConocidas(mascotaRequestDto.alergiasConocidas())
+                .condicionesCronicas(mascotaRequestDto.condicionesCronicas())
                 .build();
 
         //3. guardar en la db
@@ -122,6 +127,10 @@ public class MascotaService {
         mascota.setEspecie(mascotaRequestDto.especie());
         mascota.setRaza(mascotaRequestDto.raza());
         mascota.setFecha_nacimiento(mascotaRequestDto.fechaNacimiento());
+        mascota.setSexo(mascotaRequestDto.sexo());
+        mascota.setEsterilizado(mascotaRequestDto.esterilizado());
+        mascota.setAlergiasConocidas(mascotaRequestDto.alergiasConocidas());
+        mascota.setCondicionesCronicas(mascotaRequestDto.condicionesCronicas());
 
         //guardar en la db
         Mascota actualizada= mascotaRepository.save(mascota);
@@ -164,13 +173,7 @@ public class MascotaService {
         return mapToDTO(actualizada);
     }
 
-    public Page<MascotaResponseDto>
-    buscarMascotas(
-            String nombre,
-            String especie,
-            String raza,
-            Long clienteId,
-            Pageable pageable) {
+    public Page<MascotaResponseDto> buscarMascotas(String nombre, String especie, String raza, Long clienteId, Pageable pageable) {
 
         Long veterinariaId = TenantContext.getCurrentTenant();
 
@@ -195,7 +198,11 @@ public class MascotaService {
                 mascota.getCliente().getId(),
                 nombreCliente,
                 mascota.isEstado(),
-                mascota.getFotoUrl()
+                mascota.getFotoUrl(),
+                mascota.getSexo(),
+                mascota.isEsterilizado(),
+                mascota.getAlergiasConocidas(),
+                mascota.getCondicionesCronicas()
         );
     }
 
